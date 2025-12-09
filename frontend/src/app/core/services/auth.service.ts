@@ -36,8 +36,8 @@ export class AuthService {
     }
   }
 
-  register(username: string, password: string, displayName?: string, email?: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/register', { username, password, displayName, email })
+  register(username: string, password: string, displayName?: string ): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/auth/register', { username, password, displayName })
       .pipe(
         tap(response => {
           this.setAccessToken(response.accessToken);
@@ -55,7 +55,6 @@ export class AuthService {
           const user: User = {
             id: meResponse.user.id,
             username: meResponse.user.username,
-            email: meResponse.user.email,
             roles: meResponse.user.roles,
             displayName: meResponse.user.displayName || meResponse.user.username,
             preferredThemeId: meResponse.user.preferredThemeId,
@@ -91,7 +90,6 @@ export class AuthService {
           const user: User = {
             id: meResponse.user.id,
             username: meResponse.user.username,
-            email: meResponse.user.email,
             roles: meResponse.user.roles,
             displayName: meResponse.user.displayName || meResponse.user.username,
             preferredThemeId: meResponse.user.preferredThemeId,
@@ -137,7 +135,6 @@ export class AuthService {
           const user: User = {
             id: response.user.id,
             username: response.user.username,
-            email: response.user.email,
             roles: response.user.roles,
             displayName: response.user.displayName || response.user.username,
             preferredThemeId: response.user.preferredThemeId,

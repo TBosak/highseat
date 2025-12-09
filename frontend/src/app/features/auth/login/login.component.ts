@@ -25,7 +25,7 @@ export class LoginComponent {
   faRightToBracket = faRightToBracket;
 
   isLoginMode = signal(true);
-  email = signal('');
+  username = signal('');
   password = signal('');
   displayName = signal('');
   error = signal('');
@@ -37,7 +37,7 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
-    if (!this.email() || !this.password()) {
+    if (!this.username() || !this.password()) {
       this.error.set('Please fill in all required fields');
       return;
     }
@@ -46,8 +46,8 @@ export class LoginComponent {
     this.error.set('');
 
     const auth$ = this.isLoginMode()
-      ? this.authService.login(this.email(), this.password())
-      : this.authService.register(this.email(), this.password(), this.displayName());
+      ? this.authService.login(this.username(), this.password())
+      : this.authService.register(this.username(), this.password(), this.displayName());
 
     auth$.subscribe({
       next: () => {

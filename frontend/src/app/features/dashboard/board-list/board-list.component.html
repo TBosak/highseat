@@ -4,7 +4,7 @@
       <h1>My Boards</h1>
       @if (user()) {
         <div class="user-info">
-          <span>{{ user()!.email }}</span>
+          <span>{{ user()!.displayName }}</span>
           <button class="btn btn-secondary" (click)="logout()">
             <fa-icon [icon]="faRightFromBracket" class="icon-sm"></fa-icon>
             <span>Logout</span>

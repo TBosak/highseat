@@ -12,7 +12,6 @@ const registerSchema = z.object({
   username: z.string().min(3).max(30),
   password: z.string().min(8),
   displayName: z.string().optional(),
-  email: z.string().email().optional()
 });
 
 const loginSchema = z.object({
@@ -26,8 +25,8 @@ const refreshSchema = z.object({
 
 auth.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
-    const { username, password, displayName, email } = c.req.valid('json');
-    const result = await AuthService.register(username, password, displayName, email);
+    const { username, password, displayName } = c.req.valid('json');
+    const result = await AuthService.register(username, password, displayName);
     return c.json(result, 201);
   } catch (error) {
     return c.json({ error: (error as Error).message }, 400);
@@ -69,7 +68,6 @@ auth.get('/me', authMiddleware, async (c) => {
     user: {
       id: user.id,
       username: user.username,
-      email: user.email,
       displayName: user.displayName,
       roles: JSON.parse(user.roles),
       preferredThemeId: user.preferredThemeId,
