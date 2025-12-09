@@ -79,7 +79,6 @@
   @if (backgroundModal.showModal() && currentTab()) {
     <app-background-settings-modal
       [currentTab]="currentTab()!"
-      [allTabs]="tabs()"
       (saved)="handleBackgroundSettingsSaved($event)"
       (cancelled)="backgroundModal.close()"
     ></app-background-settings-modal>

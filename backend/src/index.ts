@@ -10,6 +10,7 @@ import cardsRoutes from './routes/cards.routes';
 import themesRoutes from './routes/themes.routes';
 import usersRoutes from './routes/users.routes';
 import uploadsRoutes from './routes/uploads.routes';
+import rolesRoutes from './routes/roles.routes';
 import type { AuthEnv } from './types';
 
 const app = new Hono<AuthEnv>();
@@ -33,6 +34,7 @@ app.route('/api/cards', cardsRoutes);
 app.route('/api/themes', themesRoutes);
 app.route('/api/users', usersRoutes);
 app.route('/api/uploads', uploadsRoutes);
+app.route('/api/roles', rolesRoutes);
 
 // Serve uploaded files
 app.use('/uploads/*', serveStatic({ root: './' }));
@@ -65,7 +67,7 @@ app.get('/*', serveStatic({
   path: '../frontend/dist/browser/browser/index.html',
 }));
 
-const port = parseInt(process.env.PORT || '3000');
+const port = parseInt(process.env.PORT || '3350');
 
 console.log(`🚀 Server running on http://localhost:${port}`);
 

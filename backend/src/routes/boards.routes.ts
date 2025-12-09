@@ -29,8 +29,8 @@ boardsRouter.get('/', requirePermission('board:view'), async (c) => {
 
   const userBoards = await db
     .select()
-    .from(boards)
-    .where(eq(boards.createdBy, user.userId));
+    .from(boards);
+    // .where(eq(boards.createdBy, user.userId));
 
   return c.json(userBoards);
 });
@@ -45,7 +45,7 @@ boardsRouter.get('/:boardId', requirePermission('board:view'), async (c) => {
     .from(boards)
     .where(and(
       eq(boards.id, boardId),
-      eq(boards.createdBy, user.userId)
+      // eq(boards.createdBy, user.userId)
     ))
     .limit(1);
 

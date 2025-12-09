@@ -36,8 +36,8 @@ export class AuthService {
     }
   }
 
-  register(email: string, password: string, displayName?: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/register', { email, password, displayName })
+  register(username: string, password: string, displayName?: string, email?: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/auth/register', { username, password, displayName, email })
       .pipe(
         tap(response => {
           this.setAccessToken(response.accessToken);
@@ -54,9 +54,10 @@ export class AuthService {
         map(({ authResponse, meResponse }) => {
           const user: User = {
             id: meResponse.user.id,
+            username: meResponse.user.username,
             email: meResponse.user.email,
             roles: meResponse.user.roles,
-            displayName: meResponse.user.displayName || meResponse.user.email,
+            displayName: meResponse.user.displayName || meResponse.user.username,
             preferredThemeId: meResponse.user.preferredThemeId,
             preferredStyleMode: meResponse.user.preferredStyleMode
           };
@@ -71,8 +72,8 @@ export class AuthService {
       );
   }
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/login', { email, password })
+  login(username: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/auth/login', { username, password })
       .pipe(
         tap(response => {
           this.setAccessToken(response.accessToken);
@@ -89,9 +90,10 @@ export class AuthService {
         map(({ authResponse, meResponse }) => {
           const user: User = {
             id: meResponse.user.id,
+            username: meResponse.user.username,
             email: meResponse.user.email,
             roles: meResponse.user.roles,
-            displayName: meResponse.user.displayName || meResponse.user.email,
+            displayName: meResponse.user.displayName || meResponse.user.username,
             preferredThemeId: meResponse.user.preferredThemeId,
             preferredStyleMode: meResponse.user.preferredStyleMode
           };
@@ -134,9 +136,10 @@ export class AuthService {
         next: (response) => {
           const user: User = {
             id: response.user.id,
+            username: response.user.username,
             email: response.user.email,
             roles: response.user.roles,
-            displayName: response.user.displayName || response.user.email,
+            displayName: response.user.displayName || response.user.username,
             preferredThemeId: response.user.preferredThemeId,
             preferredStyleMode: response.user.preferredStyleMode
           };

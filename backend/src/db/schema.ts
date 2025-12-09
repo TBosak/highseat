@@ -16,6 +16,17 @@ export const users = sqliteTable('users', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 });
 
+// Roles table
+export const roles = sqliteTable('roles', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull().unique(),
+  description: text('description'),
+  permissions: text('permissions').notNull(), // JSON array of permissions
+  isSystem: integer('is_system', { mode: 'boolean' }).default(false), // System roles cannot be deleted
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+});
+
 // Themes table
 export const themes = sqliteTable('themes', {
   id: text('id').primaryKey().$defaultFn(() => createId()),

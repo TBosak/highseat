@@ -76,7 +76,7 @@ npm run dev
 Or run them separately:
 
 \`\`\`bash
-# Backend only (port 3000)
+# Backend only (port 3350)
 npm run dev:backend
 
 # Frontend only (port 4200)

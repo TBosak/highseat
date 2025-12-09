@@ -54,6 +54,134 @@
         </div>
       }
     </section>
+
+    <!-- User Management Section -->
+    <section class="settings-section" *hasPermission="'user:manage'">
+      <h2>User Management</h2>
+
+      <div class="section-header">
+        <button class="btn btn-primary" (click)="openCreateUserModal()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create User</span>
+        </button>
+      </div>
+
+      @if (usersLoading()) {
+        <div class="loading-state">
+          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+          <p>Loading users...</p>
+        </div>
+      } @else if (users().length === 0) {
+        <div class="empty-state">
+          <p>No users created yet.</p>
+          <button class="btn btn-primary" (click)="openCreateUserModal()">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Your First User</span>
+          </button>
+        </div>
+      } @else {
+        <div class="users-list">
+          @for (user of users(); track user.id) {
+            <div class="user-item card">
+              <div class="user-info">
+                <div class="user-icon">
+                  <fa-icon [icon]="faUser"></fa-icon>
+                </div>
+                <div class="user-details">
+                  <h3>{{ user.username }}</h3>
+                  @if (user.displayName) {
+                    <p class="user-display-name">{{ user.displayName }}</p>
+                  }
+                  @if (user.email) {
+                    <p class="user-email">{{ user.email }}</p>
+                  }
+                  <div class="user-roles">
+                    @for (role of user.roles; track role) {
+                      <span class="role-badge">{{ role }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="user-actions">
+                <button class="btn btn-sm btn-secondary" (click)="startEditUser(user)" title="Edit">
+                  <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="deleteUser(user, $event)" title="Delete">
+                  <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Role Management Section -->
+    <section class="settings-section" *hasPermission="'role:manage'">
+      <h2>Role Management</h2>
+
+      <div class="section-header">
+        <button class="btn btn-primary" (click)="openCreateRoleModal()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Role</span>
+        </button>
+      </div>
+
+      @if (rolesLoading()) {
+        <div class="loading-state">
+          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+          <p>Loading roles...</p>
+        </div>
+      } @else if (roles().length === 0) {
+        <div class="empty-state">
+          <p>No custom roles created yet.</p>
+          <button class="btn btn-primary" (click)="openCreateRoleModal()">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Your First Role</span>
+          </button>
+        </div>
+      } @else {
+        <div class="roles-list">
+          @for (role of roles(); track role.id) {
+            <div class="role-item card">
+              <div class="role-info">
+                <div class="role-header">
+                  <h3>
+                    {{ role.name }}
+                    @if (role.isSystem) {
+                      <span class="system-badge">System</span>
+                    }
+                  </h3>
+                  @if (role.description) {
+                    <p class="role-description">{{ role.description }}</p>
+                  }
+                </div>
+                <div class="role-permissions">
+                  <span class="permissions-label">Permissions:</span>
+                  <div class="permissions-grid">
+                    @for (permission of role.permissions; track permission) {
+                      <span class="permission-badge">{{ permission }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="role-actions">
+                @if (!role.isSystem) {
+                  <button class="btn btn-sm btn-secondary" (click)="startEditRole(role)" title="Edit">
+                    <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteRole(role, $event)" title="Delete">
+                    <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
   </main>
 
   <!-- Create Board Modal -->
@@ -136,6 +264,290 @@
           <button class="btn btn-primary" (click)="updateBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
             <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
             <span>Update Board</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Create User Modal -->
+  @if (showCreateUserModal()) {
+    <div class="modal-overlay" (click)="showCreateUserModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Create New User</h2>
+
+        <div class="form-group">
+          <label for="createUsername">Username *</label>
+          <input
+            type="text"
+            id="createUsername"
+            class="input"
+            [value]="newUsername()"
+            (input)="newUsername.set($any($event.target).value)"
+            placeholder="johndoe"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="createPassword">Password *</label>
+          <input
+            type="password"
+            id="createPassword"
+            class="input"
+            [value]="newUserPassword()"
+            (input)="newUserPassword.set($any($event.target).value)"
+            placeholder="********"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="createDisplayName">Display Name</label>
+          <input
+            type="text"
+            id="createDisplayName"
+            class="input"
+            [value]="newUserDisplayName()"
+            (input)="newUserDisplayName.set($any($event.target).value)"
+            placeholder="John Doe"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="createEmail">Email</label>
+          <input
+            type="email"
+            id="createEmail"
+            class="input"
+            [value]="newUserEmail()"
+            (input)="newUserEmail.set($any($event.target).value)"
+            placeholder="john@example.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Roles *</label>
+          <div class="roles-selector">
+            @for (role of availableRoles(); track role) {
+              <label class="role-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="newUserRoles().includes(role)"
+                  (change)="toggleRole(role)"
+                />
+                <span>{{ role }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showCreateUserModal.set(false)">
+            <span>Cancel</span>
+          </button>
+          <button class="btn btn-primary" (click)="createUser()" [disabled]="!newUsername() || !newUserPassword()">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create User</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit User Modal -->
+  @if (showEditUserModal()) {
+    <div class="modal-overlay" (click)="showEditUserModal.set(false); editingUser.set(null)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Edit User</h2>
+
+        <div class="form-group">
+          <label for="editUsername">Username *</label>
+          <input
+            type="text"
+            id="editUsername"
+            class="input"
+            [value]="newUsername()"
+            (input)="newUsername.set($any($event.target).value)"
+            placeholder="johndoe"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editPassword">Password (leave blank to keep current)</label>
+          <input
+            type="password"
+            id="editPassword"
+            class="input"
+            [value]="newUserPassword()"
+            (input)="newUserPassword.set($any($event.target).value)"
+            placeholder="********"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editDisplayName">Display Name</label>
+          <input
+            type="text"
+            id="editDisplayName"
+            class="input"
+            [value]="newUserDisplayName()"
+            (input)="newUserDisplayName.set($any($event.target).value)"
+            placeholder="John Doe"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editEmail">Email</label>
+          <input
+            type="email"
+            id="editEmail"
+            class="input"
+            [value]="newUserEmail()"
+            (input)="newUserEmail.set($any($event.target).value)"
+            placeholder="john@example.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Roles *</label>
+          <div class="roles-selector">
+            @for (role of availableRoles(); track role) {
+              <label class="role-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="newUserRoles().includes(role)"
+                  (change)="toggleRole(role)"
+                />
+                <span>{{ role }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showEditUserModal.set(false); editingUser.set(null)">
+            <span>Cancel</span>
+          </button>
+          <button class="btn btn-primary" (click)="updateUser()" [disabled]="!newUsername()">
+            <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+            <span>Update User</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Create Role Modal -->
+  @if (showCreateRoleModal()) {
+    <div class="modal-overlay" (click)="showCreateRoleModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Create New Role</h2>
+
+        <div class="form-group">
+          <label for="createRoleName">Role Name *</label>
+          <input
+            type="text"
+            id="createRoleName"
+            class="input"
+            [value]="newRoleName()"
+            (input)="newRoleName.set($any($event.target).value)"
+            placeholder="content-manager"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="createRoleDescription">Description</label>
+          <textarea
+            id="createRoleDescription"
+            class="input"
+            [value]="newRoleDescription()"
+            (input)="newRoleDescription.set($any($event.target).value)"
+            placeholder="Can manage content and media"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Permissions * (select at least one)</label>
+          <div class="permissions-selector">
+            @for (permission of availablePermissions; track permission) {
+              <label class="permission-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="newRolePermissions().includes(permission)"
+                  (change)="togglePermission(permission)"
+                />
+                <span>{{ permission }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showCreateRoleModal.set(false)">
+            <span>Cancel</span>
+          </button>
+          <button class="btn btn-primary" (click)="createRole()" [disabled]="!newRoleName() || newRolePermissions().length === 0">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Role</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Role Modal -->
+  @if (showEditRoleModal()) {
+    <div class="modal-overlay" (click)="showEditRoleModal.set(false); editingRole.set(null)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Edit Role</h2>
+
+        <div class="form-group">
+          <label for="editRoleName">Role Name *</label>
+          <input
+            type="text"
+            id="editRoleName"
+            class="input"
+            [value]="newRoleName()"
+            (input)="newRoleName.set($any($event.target).value)"
+            placeholder="content-manager"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editRoleDescription">Description</label>
+          <textarea
+            id="editRoleDescription"
+            class="input"
+            [value]="newRoleDescription()"
+            (input)="newRoleDescription.set($any($event.target).value)"
+            placeholder="Can manage content and media"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Permissions * (select at least one)</label>
+          <div class="permissions-selector">
+            @for (permission of availablePermissions; track permission) {
+              <label class="permission-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="newRolePermissions().includes(permission)"
+                  (change)="togglePermission(permission)"
+                />
+                <span>{{ permission }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showEditRoleModal.set(false); editingRole.set(null)">
+            <span>Cancel</span>
+          </button>
+          <button class="btn btn-primary" (click)="updateRole()" [disabled]="!newRoleName() || newRolePermissions().length === 0">
+            <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+            <span>Update Role</span>
           </button>
         </div>
       </div>

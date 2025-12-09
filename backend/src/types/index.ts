@@ -1,7 +1,10 @@
-import type { users, boards, tabs, zones, cards, themes } from '../db/schema';
+import type { users, boards, tabs, zones, cards, themes, roles } from '../db/schema';
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+export type Role = typeof roles.$inferSelect;
+export type NewRole = typeof roles.$inferInsert;
 
 export type Board = typeof boards.$inferSelect;
 export type NewBoard = typeof boards.$inferInsert;
@@ -58,7 +61,7 @@ export interface CardWidget {
 
 export interface JWTPayload {
   userId: string;
-  email: string;
+  username: string;
   roles: string[];
 }
 

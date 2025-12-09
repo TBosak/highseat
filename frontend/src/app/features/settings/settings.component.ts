@@ -1,12 +1,14 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowLeft, faPlus, faTrash, faEdit, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faTrash, faEdit, faSpinner, faUser } from '@fortawesome/free-solid-svg-icons';
 import { BoardService } from '../../core/services/board.service';
+import { UserService, CreateUserData, UpdateUserData } from '../../core/services/user.service';
+import { RoleService, Role, CreateRoleData, UpdateRoleData } from '../../core/services/role.service';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
-import type { Board } from '../../core/models';
+import type { Board, User, Permission } from '../../core/models';
 
 @Component({
   selector: 'app-settings',
@@ -17,6 +19,8 @@ import type { Board } from '../../core/models';
 })
 export class SettingsComponent implements OnInit {
   private boardService = inject(BoardService);
+  private userService = inject(UserService);
+  private roleService = inject(RoleService);
   private router = inject(Router);
 
   // Icons
@@ -25,18 +29,58 @@ export class SettingsComponent implements OnInit {
   faTrash = faTrash;
   faEdit = faEdit;
   faSpinner = faSpinner;
+  faUser = faUser;
 
+  // Board management
   boards = signal<Board[]>([]);
   loading = signal(true);
   showCreateModal = signal(false);
   showEditModal = signal(false);
   editingBoard = signal<Board | null>(null);
-
   newBoardName = signal('');
   newBoardSlug = signal('');
 
+  // User management
+  users = signal<User[]>([]);
+  usersLoading = signal(true);
+  showCreateUserModal = signal(false);
+  showEditUserModal = signal(false);
+  editingUser = signal<User | null>(null);
+  newUsername = signal('');
+  newUserEmail = signal('');
+  newUserPassword = signal('');
+  newUserDisplayName = signal('');
+  newUserRoles = signal<string[]>(['viewer']);
+
+  // Role management
+  roles = signal<Role[]>([]);
+  rolesLoading = signal(true);
+  showCreateRoleModal = signal(false);
+  showEditRoleModal = signal(false);
+  editingRole = signal<Role | null>(null);
+  newRoleName = signal('');
+  newRoleDescription = signal('');
+  newRolePermissions = signal<Permission[]>([]);
+
+  // Computed property for available role names (for user assignment)
+  availableRoles = computed(() => this.roles().map(role => role.name));
+
+  availablePermissions: Permission[] = [
+    'board:view',
+    'board:edit',
+    'board:design',
+    'card:add',
+    'card:edit',
+    'card:delete',
+    'theme:edit',
+    'role:manage',
+    'user:manage'
+  ];
+
   ngOnInit(): void {
     this.loadBoards();
+    this.loadUsers();
+    this.loadRoles();
   }
 
   loadBoards(): void {
@@ -133,5 +177,255 @@ export class SettingsComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  // User Management Methods
+
+  loadUsers(): void {
+    this.usersLoading.set(true);
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.users.set(users);
+        this.usersLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load users:', err);
+        this.usersLoading.set(false);
+      }
+    });
+  }
+
+  openCreateUserModal(): void {
+    this.newUsername.set('');
+    this.newUserEmail.set('');
+    this.newUserPassword.set('');
+    this.newUserDisplayName.set('');
+    this.newUserRoles.set(['viewer']);
+    this.showCreateUserModal.set(true);
+  }
+
+  createUser(): void {
+    if (!this.newUsername() || !this.newUserPassword()) {
+      return;
+    }
+
+    const userData: CreateUserData = {
+      username: this.newUsername(),
+      password: this.newUserPassword(),
+      displayName: this.newUserDisplayName() || undefined,
+      email: this.newUserEmail() || undefined,
+      roles: this.newUserRoles()
+    };
+
+    this.userService.createUser(userData).subscribe({
+      next: (user) => {
+        this.users.update(users => [...users, user]);
+        this.showCreateUserModal.set(false);
+        this.clearUserForm();
+      },
+      error: (err) => {
+        console.error('Failed to create user:', err);
+        alert(err.error?.error || 'Failed to create user');
+      }
+    });
+  }
+
+  startEditUser(user: User): void {
+    this.editingUser.set(user);
+    this.newUsername.set(user.username);
+    this.newUserEmail.set(user.email || '');
+    this.newUserPassword.set('');
+    this.newUserDisplayName.set(user.displayName || '');
+    this.newUserRoles.set(user.roles);
+    this.showEditUserModal.set(true);
+  }
+
+  updateUser(): void {
+    const user = this.editingUser();
+    if (!user || !this.newUsername()) {
+      return;
+    }
+
+    const updateData: UpdateUserData = {
+      username: this.newUsername(),
+      displayName: this.newUserDisplayName() || undefined,
+      email: this.newUserEmail() || undefined,
+      roles: this.newUserRoles()
+    };
+
+    if (this.newUserPassword()) {
+      updateData.password = this.newUserPassword();
+    }
+
+    this.userService.updateUser(user.id, updateData).subscribe({
+      next: (updatedUser) => {
+        this.users.update(users =>
+          users.map(u => (u.id === updatedUser.id ? updatedUser : u))
+        );
+        this.showEditUserModal.set(false);
+        this.editingUser.set(null);
+        this.clearUserForm();
+      },
+      error: (err) => {
+        console.error('Failed to update user:', err);
+        alert(err.error?.error || 'Failed to update user');
+      }
+    });
+  }
+
+  deleteUser(user: User, event: Event): void {
+    event.stopPropagation();
+
+    if (!confirm(`Delete user "${user.username}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    this.userService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.users.update(users => users.filter(u => u.id !== user.id));
+      },
+      error: (err) => {
+        console.error('Failed to delete user:', err);
+        alert(err.error?.error || 'Failed to delete user');
+      }
+    });
+  }
+
+  toggleRole(role: string): void {
+    const currentRoles = this.newUserRoles();
+    if (currentRoles.includes(role)) {
+      this.newUserRoles.set(currentRoles.filter(r => r !== role));
+    } else {
+      this.newUserRoles.set([...currentRoles, role]);
+    }
+  }
+
+  private clearUserForm(): void {
+    this.newUsername.set('');
+    this.newUserEmail.set('');
+    this.newUserPassword.set('');
+    this.newUserDisplayName.set('');
+    this.newUserRoles.set(['viewer']);
+  }
+
+  // Role Management Methods
+
+  loadRoles(): void {
+    this.rolesLoading.set(true);
+    this.roleService.getRoles().subscribe({
+      next: (roles) => {
+        this.roles.set(roles);
+        this.rolesLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load roles:', err);
+        this.rolesLoading.set(false);
+      }
+    });
+  }
+
+  openCreateRoleModal(): void {
+    this.newRoleName.set('');
+    this.newRoleDescription.set('');
+    this.newRolePermissions.set([]);
+    this.showCreateRoleModal.set(true);
+  }
+
+  createRole(): void {
+    if (!this.newRoleName() || this.newRolePermissions().length === 0) {
+      return;
+    }
+
+    const roleData: CreateRoleData = {
+      name: this.newRoleName(),
+      description: this.newRoleDescription() || undefined,
+      permissions: this.newRolePermissions()
+    };
+
+    this.roleService.createRole(roleData).subscribe({
+      next: (role) => {
+        this.roles.update(roles => [...roles, role]);
+        this.showCreateRoleModal.set(false);
+        this.clearRoleForm();
+      },
+      error: (err) => {
+        console.error('Failed to create role:', err);
+        alert(err.error?.error || 'Failed to create role');
+      }
+    });
+  }
+
+  startEditRole(role: Role): void {
+    this.editingRole.set(role);
+    this.newRoleName.set(role.name);
+    this.newRoleDescription.set(role.description || '');
+    this.newRolePermissions.set(role.permissions as Permission[]);
+    this.showEditRoleModal.set(true);
+  }
+
+  updateRole(): void {
+    const role = this.editingRole();
+    if (!role || !this.newRoleName() || this.newRolePermissions().length === 0) {
+      return;
+    }
+
+    const updateData: UpdateRoleData = {
+      name: this.newRoleName(),
+      description: this.newRoleDescription() || undefined,
+      permissions: this.newRolePermissions()
+    };
+
+    this.roleService.updateRole(role.id, updateData).subscribe({
+      next: (updatedRole) => {
+        this.roles.update(roles =>
+          roles.map(r => (r.id === updatedRole.id ? updatedRole : r))
+        );
+        this.showEditRoleModal.set(false);
+        this.editingRole.set(null);
+        this.clearRoleForm();
+      },
+      error: (err) => {
+        console.error('Failed to update role:', err);
+        alert(err.error?.error || 'Failed to update role');
+      }
+    });
+  }
+
+  deleteRole(role: Role, event: Event): void {
+    event.stopPropagation();
+
+    if (role.isSystem) {
+      alert('Cannot delete system roles');
+      return;
+    }
+
+    if (!confirm(`Delete role "${role.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    this.roleService.deleteRole(role.id).subscribe({
+      next: () => {
+        this.roles.update(roles => roles.filter(r => r.id !== role.id));
+      },
+      error: (err) => {
+        console.error('Failed to delete role:', err);
+        alert(err.error?.error || 'Failed to delete role');
+      }
+    });
+  }
+
+  togglePermission(permission: Permission): void {
+    const currentPermissions = this.newRolePermissions();
+    if (currentPermissions.includes(permission)) {
+      this.newRolePermissions.set(currentPermissions.filter(p => p !== permission));
+    } else {
+      this.newRolePermissions.set([...currentPermissions, permission]);
+    }
+  }
+
+  private clearRoleForm(): void {
+    this.newRoleName.set('');
+    this.newRoleDescription.set('');
+    this.newRolePermissions.set([]);
   }
 }

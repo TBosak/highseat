@@ -10,7 +10,9 @@
       "Bash(cat:*)",
       "mcp__serena__activate_project",
       "WebFetch(domain:context7.com)",
-      "mcp__serena__read_file"
+      "mcp__serena__read_file",
+      "Bash(bunx drizzle-kit:*)",
+      "Bash(bun:*)"
     ],
     "deny": [],
     "ask": []

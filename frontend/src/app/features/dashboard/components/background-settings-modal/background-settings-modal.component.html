@@ -89,17 +89,6 @@
       />
     </div>
 
-    <!-- Apply to All Tabs -->
-    <div class="form-group">
-      <label class="checkbox-label">
-        <input
-          type="checkbox"
-          [checked]="applyToAll()"
-          (change)="applyToAll.set($any($event.target).checked)"
-        />
-        <span>Apply these settings to all tabs</span>
-      </label>
-    </div>
   </div>
 
   <div class="modal-footer">
@@ -107,7 +96,7 @@
       <span>Cancel</span>
     </button>
     <button class="btn btn-primary" (click)="save()">
-      <span>{{ applyToAll() ? 'Apply to All Tabs' : 'Save' }}</span>
+      <span>Save</span>
     </button>
   </div>
 </div>

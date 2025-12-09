@@ -17,16 +17,18 @@ const updateThemePreferenceSchema = z.object({
 });
 
 const createUserSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(3).max(30),
   password: z.string().min(8),
   displayName: z.string().optional(),
+  email: z.string().email().optional(),
   roles: z.array(z.string()).default(['viewer'])
 });
 
 const updateUserSchema = z.object({
-  email: z.string().email().optional(),
+  username: z.string().min(3).max(30).optional(),
   password: z.string().min(8).optional(),
   displayName: z.string().optional(),
+  email: z.string().email().optional(),
   roles: z.array(z.string()).optional()
 });
 
@@ -60,6 +62,7 @@ users.patch('/me/theme-preference', authMiddleware, zValidator('json', updateThe
 users.get('/', authMiddleware, requirePermission('user:manage'), async (c) => {
   const allUsers = await db.select({
     id: usersTable.id,
+    username: usersTable.username,
     email: usersTable.email,
     displayName: usersTable.displayName,
     roles: usersTable.roles,
@@ -77,10 +80,10 @@ users.get('/', authMiddleware, requirePermission('user:manage'), async (c) => {
 users.post('/', authMiddleware, requirePermission('user:manage'), zValidator('json', createUserSchema), async (c) => {
   const data = c.req.valid('json');
 
-  // Check if user already exists
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, data.email)).limit(1);
+  // Check if username already exists
+  const existing = await db.select().from(usersTable).where(eq(usersTable.username, data.username)).limit(1);
   if (existing.length > 0) {
-    return c.json({ error: 'User with this email already exists' }, 400);
+    return c.json({ error: 'Username already taken' }, 400);
   }
 
   // Hash password
@@ -88,6 +91,7 @@ users.post('/', authMiddleware, requirePermission('user:manage'), zValidator('js
 
   // Create user
   const [newUser] = await db.insert(usersTable).values({
+    username: data.username,
     email: data.email,
     passwordHash,
     displayName: data.displayName,
@@ -96,6 +100,7 @@ users.post('/', authMiddleware, requirePermission('user:manage'), zValidator('js
 
   return c.json({
     id: newUser.id,
+    username: newUser.username,
     email: newUser.email,
     displayName: newUser.displayName,
     roles: JSON.parse(newUser.roles),
@@ -110,6 +115,7 @@ users.patch('/:userId', authMiddleware, requirePermission('user:manage'), zValid
 
   const updateData: any = {};
 
+  if (data.username) updateData.username = data.username;
   if (data.email) updateData.email = data.email;
   if (data.displayName) updateData.displayName = data.displayName;
   if (data.roles) updateData.roles = JSON.stringify(data.roles);
@@ -129,6 +135,7 @@ users.patch('/:userId', authMiddleware, requirePermission('user:manage'), zValid
 
   return c.json({
     id: updatedUser.id,
+    username: updatedUser.username,
     email: updatedUser.email,
     displayName: updatedUser.displayName,
     roles: JSON.parse(updatedUser.roles),

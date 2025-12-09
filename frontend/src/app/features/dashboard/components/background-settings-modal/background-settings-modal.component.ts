@@ -15,7 +15,6 @@ import { Tab } from '../../../../core/models';
 })
 export class BackgroundSettingsModalComponent {
   @Input() currentTab!: Tab;
-  @Input() allTabs: Tab[] = [];
   @Output() cancelled = new EventEmitter<void>();
   @Output() saved = new EventEmitter<{ tabIds: string[], settings: Partial<Tab> }>();
 
@@ -25,7 +24,6 @@ export class BackgroundSettingsModalComponent {
   faUpload = faUpload;
   faTrash = faTrash;
 
-  applyToAll = signal(false);
   backgroundImage = signal<string | null | undefined>(undefined);
   backgroundBlur = signal(0);
   backgroundOpacity = signal(100);
@@ -96,11 +94,7 @@ export class BackgroundSettingsModalComponent {
       backgroundOpacity: this.backgroundOpacity()
     };
 
-    const tabIds = this.applyToAll()
-      ? this.allTabs.map(t => t.id)
-      : [this.currentTab.id];
-
-    this.saved.emit({ tabIds, settings });
+    this.saved.emit({ tabIds: [this.currentTab.id], settings });
   }
 
   cancel(): void {

@@ -4,16 +4,18 @@ import { Observable } from 'rxjs';
 import type { User } from '../models';
 
 export interface CreateUserData {
-  email: string;
+  username: string;
   password: string;
   displayName?: string;
+  email?: string;
   roles: string[];
 }
 
 export interface UpdateUserData {
-  email?: string;
+  username?: string;
   password?: string;
   displayName?: string;
+  email?: string;
   roles?: string[];
 }
 

@@ -9,13 +9,14 @@ import type { AuthEnv, JWTPayload } from '../types';
 const auth = new Hono<AuthEnv>();
 
 const registerSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(3).max(30),
   password: z.string().min(8),
-  displayName: z.string().optional()
+  displayName: z.string().optional(),
+  email: z.string().email().optional()
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  username: z.string(),
   password: z.string()
 });
 
@@ -25,8 +26,8 @@ const refreshSchema = z.object({
 
 auth.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
-    const { email, password, displayName } = c.req.valid('json');
-    const result = await AuthService.register(email, password, displayName);
+    const { username, password, displayName, email } = c.req.valid('json');
+    const result = await AuthService.register(username, password, displayName, email);
     return c.json(result, 201);
   } catch (error) {
     return c.json({ error: (error as Error).message }, 400);
@@ -35,8 +36,8 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
 
 auth.post('/login', zValidator('json', loginSchema), async (c) => {
   try {
-    const { email, password } = c.req.valid('json');
-    const result = await AuthService.login(email, password);
+    const { username, password } = c.req.valid('json');
+    const result = await AuthService.login(username, password);
     return c.json(result);
   } catch (error) {
     return c.json({ error: (error as Error).message }, 401);
@@ -67,6 +68,7 @@ auth.get('/me', authMiddleware, async (c) => {
   return c.json({
     user: {
       id: user.id,
+      username: user.username,
       email: user.email,
       displayName: user.displayName,
       roles: JSON.parse(user.roles),

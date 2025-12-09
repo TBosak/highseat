@@ -1,6 +1,7 @@
 export interface User {
   id: string;
-  email: string;
+  username: string;
+  email?: string;
   displayName?: string;
   roles: string[];
   preferredThemeId?: string;

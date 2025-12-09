@@ -71,19 +71,20 @@ export class AuthService {
     await db.delete(refreshTokens).where(eq(refreshTokens.token, token));
   }
 
-  static async register(email: string, password: string, displayName?: string) {
+  static async register(username: string, password: string, displayName?: string, email?: string) {
     const existingUser = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.username, username))
       .limit(1);
 
     if (existingUser.length > 0) {
-      throw new Error('Email already registered');
+      throw new Error('Username already taken');
     }
 
     const passwordHash = await this.hashPassword(password);
     const [user] = await db.insert(users).values({
+      username,
       email,
       passwordHash,
       displayName,
@@ -93,7 +94,7 @@ export class AuthService {
     const roles = JSON.parse(user.roles);
     const accessToken = this.generateAccessToken({
       userId: user.id,
-      email: user.email,
+      username: user.username,
       roles
     });
 
@@ -103,6 +104,7 @@ export class AuthService {
     return {
       user: {
         id: user.id,
+        username: user.username,
         email: user.email,
         displayName: user.displayName,
         roles
@@ -112,11 +114,11 @@ export class AuthService {
     };
   }
 
-  static async login(email: string, password: string) {
+  static async login(username: string, password: string) {
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.username, username))
       .limit(1);
 
     if (!user) {
@@ -131,7 +133,7 @@ export class AuthService {
     const roles = JSON.parse(user.roles);
     const accessToken = this.generateAccessToken({
       userId: user.id,
-      email: user.email,
+      username: user.username,
       roles
     });
 
@@ -141,6 +143,7 @@ export class AuthService {
     return {
       user: {
         id: user.id,
+        username: user.username,
         email: user.email,
         displayName: user.displayName,
         roles
@@ -169,7 +172,7 @@ export class AuthService {
     const roles = JSON.parse(user.roles);
     const accessToken = this.generateAccessToken({
       userId: user.id,
-      email: user.email,
+      username: user.username,
       roles
     });
 
