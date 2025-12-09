@@ -87,7 +87,9 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showCreateModal.set(false)">Cancel</button>
+          <button class="btn btn-secondary" (click)="showCreateModal.set(false)">
+            <span>Cancel</span>
+          </button>
           <button class="btn btn-primary" (click)="createBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
             <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
             <span>Create Board</span>
@@ -128,7 +130,9 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showEditModal.set(false); editingBoard.set(null)">Cancel</button>
+          <button class="btn btn-secondary" (click)="showEditModal.set(false); editingBoard.set(null)">
+            <span>Cancel</span>
+          </button>
           <button class="btn btn-primary" (click)="updateBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
             <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
             <span>Update Board</span>

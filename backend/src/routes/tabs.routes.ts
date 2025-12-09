@@ -22,9 +22,9 @@ const updateTabSchema = z.object({
   name: z.string().min(1).optional(),
   slug: z.string().min(1).optional(),
   order: z.number().int().min(0).optional(),
-  backgroundImage: z.string().optional(),
-  backgroundBlur: z.number().int().min(0).max(100).optional(),
-  backgroundOpacity: z.number().int().min(0).max(100).optional()
+  backgroundImage: z.string().nullable().optional(),
+  backgroundBlur: z.number().int().min(0).max(100).nullable().optional(),
+  backgroundOpacity: z.number().int().min(0).max(100).nullable().optional()
 });
 
 // Get all tabs for a board

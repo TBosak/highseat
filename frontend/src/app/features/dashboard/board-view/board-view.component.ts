@@ -648,11 +648,11 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
           updatesCompleted++;
 
-          // If all updates are complete and current tab was updated, reload it
+          // If all updates are complete, update currentTab if needed
           if (updatesCompleted === tabIds.length) {
             if (currentTabId && tabIds.includes(currentTabId)) {
-              // Reload the current tab to get fresh data with background settings
-              this.loadCards(currentTabId);
+              // Update the current tab with the new background settings
+              this.currentTab.update(tab => tab ? { ...tab, ...settings } : tab);
             }
             this.backgroundModal.close();
           }

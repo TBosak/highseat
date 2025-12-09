@@ -22,6 +22,8 @@
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--base02);
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .nav-left {

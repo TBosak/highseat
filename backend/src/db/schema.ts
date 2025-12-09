@@ -5,10 +5,13 @@ import { createId } from '@paralleldrive/cuid2';
 // Users table
 export const users = sqliteTable('users', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  email: text('email').notNull().unique(),
+  username: text('username').notNull().unique(),
+  email: text('email'), // Optional, for password reset
   passwordHash: text('password_hash').notNull(),
   displayName: text('display_name'),
   roles: text('roles').notNull().default('["viewer"]'), // JSON array
+  preferredThemeId: text('preferred_theme_id').references(() => themes.id),
+  preferredStyleMode: text('preferred_style_mode'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 });

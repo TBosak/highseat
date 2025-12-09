@@ -33,9 +33,9 @@ export interface Tab {
   name: string;
   slug: string;
   order: number;
-  backgroundImage?: string;
-  backgroundBlur?: number;
-  backgroundOpacity?: number;
+  backgroundImage?: string | null;
+  backgroundBlur?: number | null;
+  backgroundOpacity?: number | null;
   createdAt: Date;
   updatedAt: Date;
   zones?: Zone[];

@@ -14,7 +14,7 @@ import type { AuthEnv } from './types';
 
 const app = new Hono<AuthEnv>();
 
-const staticRoot = '../frontend/dist/dash-frontend/browser';
+const staticRoot = '../frontend/dist/browser/browser';
 
 // Middleware
 app.use('*', logger());
@@ -62,7 +62,7 @@ app.use('/*', serveStatic({
 // but if you want to keep it, move it AFTER the static handler above
 // and let it just serve index.html:
 app.get('/*', serveStatic({
-  path: '../frontend/dist/dash-frontend/browser/index.html',
+  path: '../frontend/dist/browser/browser/index.html',
 }));
 
 const port = parseInt(process.env.PORT || '3000');

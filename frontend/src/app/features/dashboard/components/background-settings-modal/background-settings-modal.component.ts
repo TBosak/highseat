@@ -26,7 +26,7 @@ export class BackgroundSettingsModalComponent {
   faTrash = faTrash;
 
   applyToAll = signal(false);
-  backgroundImage = signal<string | undefined>(undefined);
+  backgroundImage = signal<string | null | undefined>(undefined);
   backgroundBlur = signal(0);
   backgroundOpacity = signal(100);
   uploading = signal(false);
@@ -91,7 +91,7 @@ export class BackgroundSettingsModalComponent {
 
   save(): void {
     const settings: Partial<Tab> = {
-      backgroundImage: this.backgroundImage() || undefined,
+      backgroundImage: this.backgroundImage() ?? null,
       backgroundBlur: this.backgroundBlur(),
       backgroundOpacity: this.backgroundOpacity()
     };
