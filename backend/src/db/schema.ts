@@ -6,7 +6,6 @@ import { createId } from '@paralleldrive/cuid2';
 export const users = sqliteTable('users', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   username: text('username').notNull().unique(),
-  email: text('email'), // Optional, for password reset
   passwordHash: text('password_hash').notNull(),
   displayName: text('display_name'),
   roles: text('roles').notNull().default('["viewer"]'), // JSON array

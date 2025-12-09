@@ -7,16 +7,18 @@
       </button>
       <h1>Settings</h1>
     </div>
-
-    <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
-      <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-      <span>Create Board</span>
-    </button>
   </header>
 
   <main class="settings-content">
     <section class="settings-section">
       <h2>Board Management</h2>
+
+      <div class="section-header">
+        <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Board</span>
+        </button>
+      </div>
 
       @if (loading()) {
         <div class="loading-state">
@@ -32,25 +34,44 @@
           </button>
         </div>
       } @else {
-        <div class="boards-list">
-          @for (board of boards(); track board.id) {
-            <div class="board-item card">
-              <div class="board-info">
-                <h3>{{ board.name }}</h3>
-                <p class="board-slug">{{ board.slug }}</p>
-                <span class="board-meta">Created {{ board.createdAt | date:'short' }}</span>
-              </div>
-
-              <div class="board-actions" *hasPermission="'board:edit'">
-                <button class="btn btn-sm btn-secondary" (click)="startEditBoard(board)" title="Edit">
-                  <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
-                </button>
-                <button class="btn btn-sm btn-danger" (click)="deleteBoard(board, $event)" title="Delete">
-                  <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
-                </button>
-              </div>
-            </div>
-          }
+        <div class="table-container">
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Created</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (board of boards(); track board.id) {
+                <tr>
+                  <td>
+                    <div class="table-cell-main">
+                      <span class="item-name">{{ board.name }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="board-slug">{{ board.slug }}</span>
+                  </td>
+                  <td>
+                    <span class="table-meta">{{ board.createdAt | date:'short' }}</span>
+                  </td>
+                  <td class="actions-col">
+                    <div class="table-actions" *hasPermission="'board:edit'">
+                      <button class="btn-icon" (click)="startEditBoard(board)" title="Edit">
+                        <fa-icon [icon]="faEdit"></fa-icon>
+                      </button>
+                      <button class="btn-icon btn-danger" (click)="deleteBoard(board, $event)" title="Delete">
+                        <fa-icon [icon]="faTrash"></fa-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </section>
@@ -80,39 +101,52 @@
           </button>
         </div>
       } @else {
-        <div class="users-list">
-          @for (user of users(); track user.id) {
-            <div class="user-item card">
-              <div class="user-info">
-                <div class="user-icon">
-                  <fa-icon [icon]="faUser"></fa-icon>
-                </div>
-                <div class="user-details">
-                  <h3>{{ user.username }}</h3>
-                  @if (user.displayName) {
-                    <p class="user-display-name">{{ user.displayName }}</p>
-                  }
-                  @if (user.email) {
-                    <p class="user-email">{{ user.email }}</p>
-                  }
-                  <div class="user-roles">
-                    @for (role of user.roles; track role) {
-                      <span class="role-badge">{{ role }}</span>
-                    }
-                  </div>
-                </div>
-              </div>
-
-              <div class="user-actions">
-                <button class="btn btn-sm btn-secondary" (click)="startEditUser(user)" title="Edit">
-                  <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
-                </button>
-                <button class="btn btn-sm btn-danger" (click)="deleteUser(user, $event)" title="Delete">
-                  <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
-                </button>
-              </div>
-            </div>
-          }
+        <div class="table-container">
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role(s)</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users(); track user.id) {
+                <tr>
+                  <td>
+                    <div class="table-cell-user">
+                      <div class="user-avatar">
+                        <fa-icon [icon]="faUser"></fa-icon>
+                      </div>
+                      <div class="user-info-compact">
+                        <span class="item-name">{{ user.username }}</span>
+                        @if (user.displayName) {
+                          <span class="item-subtitle">{{ user.displayName }}</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="role-chips">
+                      @for (role of user.roles; track role) {
+                        <span class="role-chip">{{ role }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td class="actions-col">
+                    <div class="table-actions">
+                      <button class="btn-icon" (click)="startEditUser(user)" title="Edit">
+                        <fa-icon [icon]="faEdit"></fa-icon>
+                      </button>
+                      <button class="btn-icon btn-danger" (click)="deleteUser(user, $event)" title="Delete">
+                        <fa-icon [icon]="faTrash"></fa-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </section>
@@ -142,43 +176,65 @@
           </button>
         </div>
       } @else {
-        <div class="roles-list">
-          @for (role of roles(); track role.id) {
-            <div class="role-item card">
-              <div class="role-info">
-                <div class="role-header">
-                  <h3>
-                    {{ role.name }}
-                    @if (role.isSystem) {
-                      <span class="system-badge">System</span>
+        <div class="table-container">
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Description</th>
+                <th>Permissions</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (role of roles(); track role.id) {
+                <tr>
+                  <td>
+                    <div class="table-cell-main">
+                      <span class="item-name">
+                        {{ role.name }}
+                        @if (role.isSystem) {
+                          <span class="system-badge-inline">System</span>
+                        }
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    @if (role.description) {
+                      <span class="table-meta">{{ role.description }}</span>
+                    } @else {
+                      <span class="table-meta text-muted">—</span>
                     }
-                  </h3>
-                  @if (role.description) {
-                    <p class="role-description">{{ role.description }}</p>
-                  }
-                </div>
-                <div class="role-permissions">
-                  <span class="permissions-label">Permissions:</span>
-                  <div class="permissions-grid">
-                    @for (permission of role.permissions; track permission) {
-                      <span class="permission-badge">{{ permission }}</span>
-                    }
-                  </div>
-                </div>
-              </div>
-
-              <div class="role-actions">
-                @if (!role.isSystem) {
-                  <button class="btn btn-sm btn-secondary" (click)="startEditRole(role)" title="Edit">
-                    <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
-                  </button>
-                  <button class="btn btn-sm btn-danger" (click)="deleteRole(role, $event)" title="Delete">
-                    <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
-                  </button>
-                }
-              </div>
-            </div>
-          }
+                  </td>
+                  <td>
+                    <div class="permissions-compact">
+                      <span class="permission-count">{{ role.permissions.length }} permissions</span>
+                      <div class="permission-chips">
+                        @for (permission of role.permissions.slice(0, 3); track permission) {
+                          <span class="permission-chip">{{ permission }}</span>
+                        }
+                        @if (role.permissions.length > 3) {
+                          <span class="permission-chip more">+{{ role.permissions.length - 3 }}</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td class="actions-col">
+                    <div class="table-actions">
+                      @if (!role.isSystem) {
+                        <button class="btn-icon" (click)="startEditRole(role)" title="Edit">
+                          <fa-icon [icon]="faEdit"></fa-icon>
+                        </button>
+                        <button class="btn-icon btn-danger" (click)="deleteRole(role, $event)" title="Delete">
+                          <fa-icon [icon]="faTrash"></fa-icon>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </section>
@@ -313,18 +369,6 @@
         </div>
 
         <div class="form-group">
-          <label for="createEmail">Email</label>
-          <input
-            type="email"
-            id="createEmail"
-            class="input"
-            [value]="newUserEmail()"
-            (input)="newUserEmail.set($any($event.target).value)"
-            placeholder="john@example.com"
-          />
-        </div>
-
-        <div class="form-group">
           <label>Roles *</label>
           <div class="roles-selector">
             @for (role of availableRoles(); track role) {
@@ -392,18 +436,6 @@
             [value]="newUserDisplayName()"
             (input)="newUserDisplayName.set($any($event.target).value)"
             placeholder="John Doe"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="editEmail">Email</label>
-          <input
-            type="email"
-            id="editEmail"
-            class="input"
-            [value]="newUserEmail()"
-            (input)="newUserEmail.set($any($event.target).value)"
-            placeholder="john@example.com"
           />
         </div>
 

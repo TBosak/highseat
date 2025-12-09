@@ -20,7 +20,6 @@ const createUserSchema = z.object({
   username: z.string().min(3).max(30),
   password: z.string().min(8),
   displayName: z.string().optional(),
-  email: z.string().email().optional(),
   roles: z.array(z.string()).default(['viewer'])
 });
 
@@ -28,7 +27,6 @@ const updateUserSchema = z.object({
   username: z.string().min(3).max(30).optional(),
   password: z.string().min(8).optional(),
   displayName: z.string().optional(),
-  email: z.string().email().optional(),
   roles: z.array(z.string()).optional()
 });
 
@@ -47,7 +45,7 @@ users.patch('/me/theme-preference', authMiddleware, zValidator('json', updateThe
     // Return user data with parsed roles and theme preferences
     return c.json({
       id: updatedUser.id,
-      email: updatedUser.email,
+      username: updatedUser.username,
       displayName: updatedUser.displayName,
       roles: JSON.parse(updatedUser.roles),
       preferredThemeId: updatedUser.preferredThemeId,
@@ -63,7 +61,6 @@ users.get('/', authMiddleware, requirePermission('user:manage'), async (c) => {
   const allUsers = await db.select({
     id: usersTable.id,
     username: usersTable.username,
-    email: usersTable.email,
     displayName: usersTable.displayName,
     roles: usersTable.roles,
     createdAt: usersTable.createdAt,
@@ -92,7 +89,6 @@ users.post('/', authMiddleware, requirePermission('user:manage'), zValidator('js
   // Create user
   const [newUser] = await db.insert(usersTable).values({
     username: data.username,
-    email: data.email,
     passwordHash,
     displayName: data.displayName,
     roles: JSON.stringify(data.roles)
@@ -101,7 +97,6 @@ users.post('/', authMiddleware, requirePermission('user:manage'), zValidator('js
   return c.json({
     id: newUser.id,
     username: newUser.username,
-    email: newUser.email,
     displayName: newUser.displayName,
     roles: JSON.parse(newUser.roles),
     createdAt: newUser.createdAt
@@ -116,7 +111,6 @@ users.patch('/:userId', authMiddleware, requirePermission('user:manage'), zValid
   const updateData: any = {};
 
   if (data.username) updateData.username = data.username;
-  if (data.email) updateData.email = data.email;
   if (data.displayName) updateData.displayName = data.displayName;
   if (data.roles) updateData.roles = JSON.stringify(data.roles);
   if (data.password) updateData.passwordHash = await bcrypt.hash(data.password, 10);
@@ -136,7 +130,6 @@ users.patch('/:userId', authMiddleware, requirePermission('user:manage'), zValid
   return c.json({
     id: updatedUser.id,
     username: updatedUser.username,
-    email: updatedUser.email,
     displayName: updatedUser.displayName,
     roles: JSON.parse(updatedUser.roles),
     updatedAt: updatedUser.updatedAt

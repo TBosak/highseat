@@ -47,7 +47,6 @@ export class SettingsComponent implements OnInit {
   showEditUserModal = signal(false);
   editingUser = signal<User | null>(null);
   newUsername = signal('');
-  newUserEmail = signal('');
   newUserPassword = signal('');
   newUserDisplayName = signal('');
   newUserRoles = signal<string[]>(['viewer']);
@@ -197,7 +196,6 @@ export class SettingsComponent implements OnInit {
 
   openCreateUserModal(): void {
     this.newUsername.set('');
-    this.newUserEmail.set('');
     this.newUserPassword.set('');
     this.newUserDisplayName.set('');
     this.newUserRoles.set(['viewer']);
@@ -213,7 +211,6 @@ export class SettingsComponent implements OnInit {
       username: this.newUsername(),
       password: this.newUserPassword(),
       displayName: this.newUserDisplayName() || undefined,
-      email: this.newUserEmail() || undefined,
       roles: this.newUserRoles()
     };
 
@@ -233,7 +230,6 @@ export class SettingsComponent implements OnInit {
   startEditUser(user: User): void {
     this.editingUser.set(user);
     this.newUsername.set(user.username);
-    this.newUserEmail.set(user.email || '');
     this.newUserPassword.set('');
     this.newUserDisplayName.set(user.displayName || '');
     this.newUserRoles.set(user.roles);
@@ -249,7 +245,6 @@ export class SettingsComponent implements OnInit {
     const updateData: UpdateUserData = {
       username: this.newUsername(),
       displayName: this.newUserDisplayName() || undefined,
-      email: this.newUserEmail() || undefined,
       roles: this.newUserRoles()
     };
 
@@ -302,7 +297,6 @@ export class SettingsComponent implements OnInit {
 
   private clearUserForm(): void {
     this.newUsername.set('');
-    this.newUserEmail.set('');
     this.newUserPassword.set('');
     this.newUserDisplayName.set('');
     this.newUserRoles.set(['viewer']);
