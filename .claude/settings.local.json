@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__list_dir",
+      "Bash(npx:*)",
+      "Bash(bun install)",
+      "Bash(npm install:*)",
+      "mcp__serena__replace_content",
+      "Bash(npm uninstall:*)",
+      "Bash(cat:*)",
+      "mcp__serena__activate_project",
+      "WebFetch(domain:context7.com)",
+      "mcp__serena__read_file"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

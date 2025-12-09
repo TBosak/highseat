@@ -1,0 +1,72 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1>{{ isLoginMode() ? 'Login' : 'Register' }}</h1>
+    <p class="subtitle">Homelab Dashboard</p>
+
+    <form (ngSubmit)="onSubmit()">
+      @if (!isLoginMode()) {
+        <div class="form-group">
+          <label for="displayName">Display Name</label>
+          <input
+            type="text"
+            id="displayName"
+            class="input"
+            [value]="displayName()"
+            (input)="displayName.set($any($event.target).value)"
+            placeholder="Enter your name"
+          />
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          class="input"
+          [value]="email()"
+          (input)="email.set($any($event.target).value)"
+          placeholder="admin@homelab.local"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          class="input"
+          [value]="password()"
+          (input)="password.set($any($event.target).value)"
+          placeholder="Enter password"
+          required
+        />
+      </div>
+
+      @if (error()) {
+        <div class="error-message">{{ error() }}</div>
+      }
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading()">
+        @if (loading()) {
+          <fa-icon [icon]="faSpinner" class="icon-sm"></fa-icon>
+          <span>{{ isLoginMode() ? 'Logging in...' : 'Registering...' }}</span>
+        } @else {
+          <fa-icon [icon]="faRightToBracket" class="icon-sm"></fa-icon>
+          <span>{{ isLoginMode() ? 'Login' : 'Register' }}</span>
+        }
+      </button>
+
+      <button type="button" class="btn-link" (click)="toggleMode()">
+        {{ isLoginMode() ? 'Need an account? Register' : 'Already have an account? Login' }}
+      </button>
+    </form>
+
+    <div class="demo-credentials">
+      <p><strong>Demo Credentials:</strong></p>
+      <p>Email: admin@homelab.local</p>
+      <p>Password: admin123</p>
+    </div>
+  </div>
+</div>

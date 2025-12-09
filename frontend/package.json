@@ -1,0 +1,55 @@
+{
+  "name": "dash-frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "build:icons": "node scripts/build-icon-index.js",
+    "prestart": "npm run build:icons",
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "dev": "ng serve --proxy-config proxy.conf.json",
+    "prebuild": "npm run build:icons",
+    "build": "ng build --output-path=dist/browser",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "dependencies": {
+    "@angular/cdk": "^21.0.2",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "gridstack": "^12.3.3",
+    "js-yaml": "^4.1.1",
+    "muuri": "^0.9.5",
+    "ngx-color-picker": "^17.0.0",
+    "ngx-masonry": "^14.0.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.0.2",
+    "@angular/cli": "^21.0.2",
+    "@angular/compiler-cli": "^21.0.0",
+    "@types/node": "^24.10.1",
+    "jsdom": "^27.1.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

@@ -1,0 +1,599 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GridStack CSS - must be global for positioning to work */
+@import 'gridstack/dist/gridstack.min.css';
+
+/* Base16/Base24 Theme Variables */
+:root {
+  /* Default colors - will be overridden by theme */
+  --base00: #002b36; --base01: #073642; --base02: #586e75; --base03: #657b83;
+  --base04: #839496; --base05: #93a1a1; --base06: #eee8d5; --base07: #fdf6e3;
+  --base08: #dc322f; --base09: #cb4b16; --base0A: #b58900; --base0B: #859900;
+  --base0C: #2aa198; --base0D: #268bd2; --base0E: #6c71c4; --base0F: #d33682;
+
+  --bg: var(--base00); --bg-elevated: var(--base01); --text: var(--base05);
+  --text-muted: var(--base03); --accent: var(--base0D); --success: var(--base0B);
+  --warning: var(--base0A); --error: var(--base08);
+
+  --board-bg: var(--base00); --board-bg-image: none;
+  --card-radius: 16px; --card-padding: 1rem;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Style Modes */
+[data-style-mode="glassmorphic"] {
+  .card, .btn {
+    background: color-mix(in srgb, var(--bg-elevated) 25%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .card {
+    border-radius: var(--card-radius, 20px);
+
+    &:hover {
+      background: color-mix(in srgb, var(--bg-elevated) 35%, transparent);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+  }
+
+  .btn {
+    border-radius: 14px;
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--bg-elevated) 40%, transparent);
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+  }
+
+  .modal, .style-editor {
+    background: color-mix(in srgb, var(--bg-elevated) 40%, transparent);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  input, select, textarea {
+    background: color-mix(in srgb, var(--base01) 30%, transparent) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+}
+
+[data-style-mode="neobrutal"] {
+  .card, .btn {
+    background: var(--bg-elevated);
+    border: 3px solid var(--text);
+    box-shadow: 6px 6px 0 var(--text);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card {
+    border-radius: 0;
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 var(--text);
+    }
+
+    &.design-mode {
+      border-color: var(--accent);
+      box-shadow: 6px 6px 0 var(--accent);
+
+      &:hover {
+        box-shadow: 8px 8px 0 var(--accent);
+      }
+    }
+  }
+
+  .btn {
+    border-radius: 0;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &:hover:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 4px 4px 0 var(--text);
+    }
+
+    &:active {
+      transform: translate(4px, 4px);
+      box-shadow: 2px 2px 0 var(--text);
+    }
+  }
+
+  .btn-primary {
+    background: var(--base0D);
+    color: #000;
+    border-color: var(--text);
+    box-shadow: 5px 5px 0 var(--text);
+
+    &:hover:not(:disabled) {
+      box-shadow: 3px 3px 0 var(--text);
+    }
+  }
+
+  .btn-success {
+    background: var(--base0B);
+    color: #000;
+    border-color: var(--text);
+    box-shadow: 5px 5px 0 var(--text);
+
+    &:hover:not(:disabled) {
+      box-shadow: 3px 3px 0 var(--text);
+    }
+  }
+
+  .btn-warning {
+    background: var(--base0A);
+    color: #000;
+    border-color: var(--text);
+    box-shadow: 5px 5px 0 var(--text);
+
+    &:hover:not(:disabled) {
+      box-shadow: 3px 3px 0 var(--text);
+    }
+  }
+
+  .btn-danger {
+    background: var(--base08);
+    color: #fff;
+    border-color: var(--text);
+    box-shadow: 5px 5px 0 var(--text);
+
+    &:hover:not(:disabled) {
+      box-shadow: 3px 3px 0 var(--text);
+    }
+  }
+
+  .modal, .style-editor {
+    border: 3px solid var(--text);
+    box-shadow: 12px 12px 0 var(--text);
+    border-radius: 0;
+  }
+
+  input, select, textarea {
+    border: 2px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 var(--base02) !important;
+
+    &:focus {
+      box-shadow: 4px 4px 0 var(--accent) !important;
+      border-color: var(--accent) !important;
+    }
+  }
+}
+
+[data-style-mode="minimal"] {
+  .card, .btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--base02);
+    box-shadow: none;
+  }
+
+  .card {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--base03);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    &.design-mode {
+      border-color: var(--accent);
+      border-style: solid;
+
+      &:hover {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+      }
+    }
+  }
+
+  .btn {
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      border-color: var(--base03);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .btn-primary, .btn-success, .btn-warning, .btn-danger {
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .modal, .style-editor {
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  input, select, textarea {
+    border-radius: 6px !important;
+    box-shadow: none !important;
+
+    &:focus {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent) !important;
+    }
+  }
+}
+
+[data-style-mode="clay"] {
+  .card, .btn {
+    background: var(--bg-elevated);
+    border: none;
+    box-shadow:
+      8px 8px 16px rgba(0, 0, 0, 0.4),
+      -8px -8px 16px rgba(255, 255, 255, 0.05),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.03),
+      inset -2px -2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .card {
+    border-radius: 24px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow:
+        12px 12px 24px rgba(0, 0, 0, 0.5),
+        -10px -10px 20px rgba(255, 255, 255, 0.06),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.04),
+        inset -1px -1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    &.design-mode {
+      box-shadow:
+        8px 8px 16px rgba(0, 0, 0, 0.4),
+        -8px -8px 16px rgba(255, 255, 255, 0.05),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.03),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.1),
+        0 0 0 2px var(--accent);
+    }
+  }
+
+  .btn {
+    border-radius: 16px;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      box-shadow:
+        6px 6px 12px rgba(0, 0, 0, 0.4),
+        -6px -6px 12px rgba(255, 255, 255, 0.05),
+        inset 1px 1px 3px rgba(255, 255, 255, 0.04),
+        inset -1px -1px 3px rgba(0, 0, 0, 0.15);
+      transform: scale(0.98);
+    }
+
+    &:active {
+      box-shadow:
+        inset 8px 8px 16px rgba(0, 0, 0, 0.5),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.03);
+      transform: scale(0.96);
+    }
+  }
+
+  .btn-primary, .btn-success, .btn-warning, .btn-danger {
+    box-shadow:
+      6px 6px 12px rgba(0, 0, 0, 0.3),
+      -6px -6px 12px rgba(255, 255, 255, 0.05),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.15);
+
+    &:hover:not(:disabled) {
+      box-shadow:
+        4px 4px 8px rgba(0, 0, 0, 0.3),
+        -4px -4px 8px rgba(255, 255, 255, 0.05),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+    }
+
+    &:active {
+      box-shadow:
+        inset 6px 6px 12px rgba(0, 0, 0, 0.4),
+        inset -2px -2px 4px rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .modal, .style-editor {
+    border-radius: 28px;
+    box-shadow:
+      16px 16px 32px rgba(0, 0, 0, 0.5),
+      -12px -12px 24px rgba(255, 255, 255, 0.05),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.03),
+      inset -2px -2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  input, select, textarea {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow:
+      inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+      inset -3px -3px 6px rgba(255, 255, 255, 0.03) !important;
+
+    &:focus {
+      box-shadow:
+        inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.03),
+        0 0 0 2px var(--accent) !important;
+    }
+  }
+}
+
+.board-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-auto-rows: 120px; gap: 1rem; padding: 2rem;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--card-padding);
+}
+
+/* Button Base Styles */
+.btn {
+  @apply px-4 py-2 font-medium cursor-pointer inline-flex items-center gap-2 justify-center;
+  color: var(--text);
+  transition: all 0.2s ease-in-out;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  /* Add more padding to buttons with text */
+  &:has(span) {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+}
+
+/* Ensure primary and danger buttons with text also get padding */
+.btn-primary:has(span),
+.btn-danger:has(span) {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+.btn-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--base0D), color-mix(in srgb, var(--base0D) 80%, #000));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--base0D) 30%, transparent);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--base0D) 90%, #fff), var(--base0D));
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--base0D) 40%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-success {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--base0B), color-mix(in srgb, var(--base0B) 80%, #000));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--base0B) 30%, transparent);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--base0B) 90%, #fff), var(--base0B));
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--base0B) 40%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-warning {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--base0A), color-mix(in srgb, var(--base0A) 80%, #000));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--base0A) 30%, transparent);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--base0A) 90%, #fff), var(--base0A));
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--base0A) 40%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-danger {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--base08), color-mix(in srgb, var(--base08) 80%, #000));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--base08) 30%, transparent);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--base08) 90%, #fff), var(--base08));
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--base08) 40%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-secondary {
+  color: var(--text);
+  background: var(--base02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover:not(:disabled) {
+    background: var(--base03);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+
+  /* Icon-only buttons (no text) should have no background */
+  &:not(:has(span)) {
+    background: transparent;
+    box-shadow: none;
+
+    &:hover:not(:disabled) {
+      background: var(--base02);
+      box-shadow: none;
+    }
+  }
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-xs;
+
+  /* Add more padding to small buttons with text */
+  &:has(span) {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+.btn-lg { @apply px-6 py-3 text-base; }
+
+/* Icon Sizes */
+.icon-xs { font-size: 0.75rem; }
+.icon-sm { font-size: 1rem; }
+.icon-md { font-size: 1.25rem; }
+.icon-lg { font-size: 1.5rem; }
+.icon-xl { font-size: 2rem; }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--base02);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+
+  h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.5rem;
+    color: var(--text);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .input,
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--base01);
+      border: 1px solid var(--base02);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+      }
+
+      &::placeholder {
+        color: var(--text-muted);
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+}
+
+/* You can add global styles to this file, and also import other style files */

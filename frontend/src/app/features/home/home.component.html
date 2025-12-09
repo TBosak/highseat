@@ -1,0 +1,97 @@
+<div class="home-container">
+  @if (loading()) {
+    <div class="loading-overlay">
+      <fa-icon [icon]="faSpinner" class="icon-xl"></fa-icon>
+      <p>Loading dashboard...</p>
+    </div>
+  } @else {
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <img src="/header.png" alt="Homelab Dashboard" class="app-logo" />
+      </div>
+
+      <!-- Board Tabs (only show if multiple boards) -->
+      @if (boards().length > 1) {
+        <nav class="board-tabs">
+          @for (board of boards(); track board.id) {
+            <button
+              class="board-tab"
+              [class.active]="selectedBoardSlug() === board.slug"
+              (click)="selectBoard(board)"
+            >
+              {{ board.name }}
+            </button>
+          }
+        </nav>
+      }
+
+      <!-- User Actions -->
+      <div class="nav-right">
+        <div class="menu-container">
+          <button class="btn btn-secondary" (click)="toggleMenu()" title="Menu">
+            <fa-icon [icon]="faBars" class="icon-sm"></fa-icon>
+          </button>
+
+          @if (showMenu()) {
+            <div class="dropdown-menu">
+              <button class="menu-item" (click)="toggleDesignMode()" *hasPermission="'board:design'">
+                <fa-icon [icon]="faPencil" class="icon-sm"></fa-icon>
+                <span>{{ designMode.isDesignMode() ? 'Exit Design' : 'Design Mode' }}</span>
+              </button>
+
+              @if (designMode.isDesignMode()) {
+                <button class="menu-item" (click)="openAddCardModal()" *hasPermission="'card:add'">
+                  <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+                  <span>Add Card</span>
+                </button>
+              }
+
+              <div class="menu-divider"></div>
+
+              <button class="menu-item" (click)="openBackgroundSettings()" *hasPermission="'board:edit'">
+                <fa-icon [icon]="faImage" class="icon-sm"></fa-icon>
+                <span>Background</span>
+              </button>
+
+              <button class="menu-item" (click)="navigateToThemes()">
+                <fa-icon [icon]="faPalette" class="icon-sm"></fa-icon>
+                <span>Themes</span>
+              </button>
+
+              <button class="menu-item" (click)="openSettingsFromMenu()" *hasPermission="'board:edit'">
+                <fa-icon [icon]="faCog" class="icon-sm"></fa-icon>
+                <span>Settings</span>
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (user()) {
+          <button class="btn btn-secondary" (click)="logout()" title="Logout">
+            <fa-icon [icon]="faRightFromBracket" class="icon-sm"></fa-icon>
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Board Content -->
+    <main class="board-container">
+      @if (boards().length === 0) {
+        <div class="empty-state">
+          <h2>Welcome to your Homelab Dashboard!</h2>
+          <p>Get started by creating your first board.</p>
+          <button class="btn btn-primary" (click)="openSettings()" *hasPermission="'board:edit'">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Board</span>
+          </button>
+        </div>
+      } @else if (selectedBoard()) {
+        <!-- Embed the board view directly -->
+        <div class="embedded-board-view">
+          <app-board-view [boardSlug]="selectedBoardSlug()!"></app-board-view>
+        </div>
+      }
+    </main>
+  }
+</div>

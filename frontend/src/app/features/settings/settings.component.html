@@ -1,0 +1,140 @@
+<div class="settings-container">
+  <header class="settings-header">
+    <div class="header-left">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <fa-icon [icon]="faArrowLeft" class="icon-sm"></fa-icon>
+        <span>Back to Dashboard</span>
+      </button>
+      <h1>Settings</h1>
+    </div>
+
+    <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
+      <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+      <span>Create Board</span>
+    </button>
+  </header>
+
+  <main class="settings-content">
+    <section class="settings-section">
+      <h2>Board Management</h2>
+
+      @if (loading()) {
+        <div class="loading-state">
+          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+          <p>Loading boards...</p>
+        </div>
+      } @else if (boards().length === 0) {
+        <div class="empty-state">
+          <p>No boards created yet.</p>
+          <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Your First Board</span>
+          </button>
+        </div>
+      } @else {
+        <div class="boards-list">
+          @for (board of boards(); track board.id) {
+            <div class="board-item card">
+              <div class="board-info">
+                <h3>{{ board.name }}</h3>
+                <p class="board-slug">{{ board.slug }}</p>
+                <span class="board-meta">Created {{ board.createdAt | date:'short' }}</span>
+              </div>
+
+              <div class="board-actions" *hasPermission="'board:edit'">
+                <button class="btn btn-sm btn-secondary" (click)="startEditBoard(board)" title="Edit">
+                  <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="deleteBoard(board, $event)" title="Delete">
+                  <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </main>
+
+  <!-- Create Board Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="showCreateModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Create New Board</h2>
+
+        <div class="form-group">
+          <label for="boardName">Board Name</label>
+          <input
+            type="text"
+            id="boardName"
+            class="input"
+            [value]="newBoardName()"
+            (input)="newBoardName.set($any($event.target).value); generateSlug()"
+            placeholder="My Homelab"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="boardSlug">Slug (URL)</label>
+          <input
+            type="text"
+            id="boardSlug"
+            class="input"
+            [value]="newBoardSlug()"
+            (input)="newBoardSlug.set($any($event.target).value)"
+            placeholder="my-homelab"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showCreateModal.set(false)">Cancel</button>
+          <button class="btn btn-primary" (click)="createBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Board</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Board Modal -->
+  @if (showEditModal()) {
+    <div class="modal-overlay" (click)="showEditModal.set(false); editingBoard.set(null)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Edit Board</h2>
+
+        <div class="form-group">
+          <label for="editBoardName">Board Name</label>
+          <input
+            type="text"
+            id="editBoardName"
+            class="input"
+            [value]="newBoardName()"
+            (input)="newBoardName.set($any($event.target).value); generateSlug()"
+            placeholder="My Homelab"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="editBoardSlug">Slug (URL)</label>
+          <input
+            type="text"
+            id="editBoardSlug"
+            class="input"
+            [value]="newBoardSlug()"
+            (input)="newBoardSlug.set($any($event.target).value)"
+            placeholder="my-homelab"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showEditModal.set(false); editingBoard.set(null)">Cancel</button>
+          <button class="btn btn-primary" (click)="updateBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
+            <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+            <span>Update Board</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

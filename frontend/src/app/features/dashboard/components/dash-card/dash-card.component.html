@@ -1,0 +1,60 @@
+<div [class]="getCardClasses().join(' ')" [ngStyle]="getCardStyles()" (click)="handleCardClick()">
+  <!-- Design Mode Toolbar -->
+  @if (designMode) {
+    <div class="card-toolbar" *hasPermission="'board:design'">
+      <button
+        class="toolbar-btn"
+        (click)="showStyleEditor.set(!showStyleEditor())"
+        title="Style"
+      >
+        <fa-icon [icon]="faPalette" class="icon-sm"></fa-icon>
+      </button>
+
+      <button
+        class="toolbar-btn toolbar-btn-danger"
+        (click)="deleteCard()"
+        title="Delete"
+        *hasPermission="'card:delete'"
+      >
+        <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
+      </button>
+    </div>
+  }
+
+  <!-- Style Editor Panel -->
+  @if (showStyleEditor() && designMode) {
+    <div class="style-editor" (click)="$event.stopPropagation()">
+      <div class="style-control">
+        <label>Border Radius</label>
+        <input
+          type="range"
+          min="0"
+          max="32"
+          [value]="borderRadius()"
+          (input)="updateBorderRadius(+$any($event.target).value)"
+        />
+        <span>{{ borderRadius() }}px</span>
+      </div>
+    </div>
+  }
+
+  <!-- Card Content -->
+  <div class="card-content">
+    @if (card.iconCustomUrl) {
+      <div class="card-icon">
+        <img [src]="card.iconCustomUrl" [alt]="card.title" />
+      </div>
+    }
+
+    <div class="card-header">
+      <h3 class="card-title">{{ card.title }}</h3>
+      @if (card.subtitle) {
+        <p class="card-subtitle">{{ card.subtitle }}</p>
+      }
+    </div>
+
+    @if (card.serviceType) {
+      <div class="card-badge">{{ card.serviceType }}</div>
+    }
+  </div>
+</div>

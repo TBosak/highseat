@@ -1,0 +1,98 @@
+<div class="board-list-container">
+  <header class="header">
+    <div class="header-content">
+      <h1>My Boards</h1>
+      @if (user()) {
+        <div class="user-info">
+          <span>{{ user()!.email }}</span>
+          <button class="btn btn-secondary" (click)="logout()">
+            <fa-icon [icon]="faRightFromBracket" class="icon-sm"></fa-icon>
+            <span>Logout</span>
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  <main class="main-content">
+    @if (loading()) {
+      <div class="loading-container">
+        <fa-icon [icon]="faSpinner" class="icon-xl"></fa-icon>
+        <p>Loading boards...</p>
+      </div>
+    } @else {
+      <div class="boards-grid">
+        @for (board of boards(); track board.id) {
+          <div class="board-card" (click)="openBoard(board)">
+            <div class="board-card-header">
+              <h3>{{ board.name }}</h3>
+              @if (board.isLocked) {
+                <fa-icon [icon]="faLock" class="lock-badge icon-sm"></fa-icon>
+              }
+            </div>
+            <p class="board-slug">{{ board.slug }}</p>
+            <div class="board-card-actions" *hasPermission="'board:edit'">
+              <button
+                class="btn btn-sm btn-danger"
+                (click)="deleteBoard(board, $event)"
+                title="Delete board"
+              >
+                <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <h2>No boards yet</h2>
+            <p>Create your first board to get started</p>
+          </div>
+        }
+
+        <div class="board-card board-card-create" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
+          <fa-icon [icon]="faPlus" class="create-icon icon-xl"></fa-icon>
+          <p>Create New Board</p>
+        </div>
+      </div>
+    }
+  </main>
+
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="showCreateModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Create New Board</h2>
+
+        <div class="form-group">
+          <label for="boardName">Board Name</label>
+          <input
+            type="text"
+            id="boardName"
+            class="input"
+            [value]="newBoardName()"
+            (input)="newBoardName.set($any($event.target).value); generateSlug()"
+            placeholder="My Homelab"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="boardSlug">Slug (URL)</label>
+          <input
+            type="text"
+            id="boardSlug"
+            class="input"
+            [value]="newBoardSlug()"
+            (input)="newBoardSlug.set($any($event.target).value)"
+            placeholder="my-homelab"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" (click)="showCreateModal.set(false)">Cancel</button>
+          <button class="btn btn-primary" (click)="createBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
+            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            <span>Create Board</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

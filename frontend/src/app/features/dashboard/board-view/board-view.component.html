@@ -1,0 +1,87 @@
+<div class="board-view-container" [attr.data-design-mode]="designMode.isDesignMode()">
+  <!-- Tab background layer -->
+  @if (currentTab()?.backgroundImage) {
+    <div
+      class="tab-background"
+      [style.background-image]="'url(' + currentTab()!.backgroundImage + ')'"
+      [style.filter]="'blur(' + (currentTab()!.backgroundBlur || 0) + 'px) opacity(' + (currentTab()!.backgroundOpacity || 100) + '%)'"
+    ></div>
+  }
+
+  @if (loading()) {
+    <div class="loading-overlay">
+      <fa-icon [icon]="faSpinner" class="icon-xl"></fa-icon>
+      <p>Loading board...</p>
+    </div>
+  } @else if (board()) {
+
+    @if (tabs().length > 1) {
+      <nav class="tab-bar">
+        @for (tab of tabs(); track tab.id) {
+          <button
+            class="tab"
+            [class.active]="currentTab()?.id === tab.id"
+            (click)="switchTab(tab)"
+          >
+            {{ tab.name }}
+          </button>
+        }
+      </nav>
+    }
+
+    <main class="board-content">
+      <div
+        #gridContainer
+        class="grid-stack"
+        [class.design-mode]="designMode.isDesignMode()"
+      >
+        @if (cards().length === 0) {
+          <div class="empty-state">
+            <p>No cards yet. Add your first card to get started!</p>
+            @if (designMode.isDesignMode()) {
+              <button class="btn btn-primary" (click)="addCardModal.open()" *hasPermission="'card:add'">
+                <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+                <span>Add Card</span>
+              </button>
+            }
+          </div>
+        }
+
+        @for (card of cards(); track card.id) {
+          <div
+            class="grid-stack-item"
+            [attr.data-card-id]="card.id"
+            [attr.gs-x]="card.layoutX"
+            [attr.gs-y]="card.layoutY"
+            [attr.gs-w]="card.layoutW"
+            [attr.gs-h]="card.layoutH"
+          >
+            <div class="grid-stack-item-content">
+              <app-dash-card
+                [card]="card"
+                [designMode]="designMode.isDesignMode()"
+                (cardDeleted)="onCardDeleted($event)"
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  }
+
+  @if (addCardModal.showModal()) {
+    <app-add-card-modal
+      (cardCreated)="handleCardCreated($event)"
+      (cancelled)="addCardModal.close()"
+    ></app-add-card-modal>
+  }
+
+  @if (backgroundModal.showModal() && currentTab()) {
+    <app-background-settings-modal
+      [currentTab]="currentTab()!"
+      [allTabs]="tabs()"
+      (saved)="handleBackgroundSettingsSaved($event)"
+      (cancelled)="backgroundModal.close()"
+    ></app-background-settings-modal>
+  }
+</div>
