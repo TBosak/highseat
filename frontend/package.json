@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "build:icons": "node scripts/build-icon-index.js",
+    "cleanup:icons": "node scripts/cleanup-icons.js",
     "prestart": "npm run build:icons",
     "start": "ng serve --proxy-config proxy.conf.json",
     "dev": "ng serve --proxy-config proxy.conf.json",

@@ -1,0 +1,113 @@
+<div class="modal-backdrop" (click)="cancel()"></div>
+
+<div class="modal-container" (click)="$event.stopPropagation()">
+  <div class="modal-header">
+    <h2>Tab Background Settings</h2>
+    <button class="btn-icon" (click)="cancel()" title="Close">
+      <fa-icon [icon]="faXmark"></fa-icon>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Preview Section -->
+    @if (backgroundImage()) {
+      <div class="background-preview">
+        <div
+          class="preview-container"
+          [style.background-image]="'url(' + backgroundImage() + ')'"
+          [style.filter]="'blur(' + backgroundBlur() + 'px) opacity(' + backgroundOpacity() + '%)'"
+        >
+          <div class="preview-content">
+            <p>Preview</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Upload Section -->
+    <div class="form-group">
+      <label>Background Image</label>
+      <div class="upload-container">
+        @if (!backgroundImage()) {
+          <label class="upload-button">
+            <input
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              (change)="onFileSelected($event)"
+              hidden
+            />
+            <fa-icon [icon]="faUpload" class="icon-sm"></fa-icon>
+            <span>{{ uploading() ? 'Uploading...' : 'Choose Image' }}</span>
+          </label>
+        } @else {
+          <div class="current-image">
+            <span class="image-path">{{ backgroundImage() }}</span>
+            <button class="btn btn-danger btn-sm" (click)="removeBackground()">
+              <fa-icon [icon]="faTrash" class="icon-sm"></fa-icon>
+              <span>Remove</span>
+            </button>
+          </div>
+        }
+      </div>
+      @if (uploadError()) {
+        <p class="error-message">{{ uploadError() }}</p>
+      }
+      <p class="help-text">Upload a background image for this tab (max 10MB, JPEG/PNG/GIF/WebP)</p>
+    </div>
+
+    <!-- Blur Control -->
+    <div class="form-group">
+      <label>
+        Background Blur
+        <span class="value-display">{{ backgroundBlur() }}px</span>
+      </label>
+      <input
+        type="range"
+        min="0"
+        max="50"
+        step="1"
+        [value]="backgroundBlur()"
+        (input)="backgroundBlur.set(+$any($event.target).value)"
+        class="slider"
+      />
+    </div>
+
+    <!-- Opacity Control -->
+    <div class="form-group">
+      <label>
+        Background Opacity
+        <span class="value-display">{{ backgroundOpacity() }}%</span>
+      </label>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        [value]="backgroundOpacity()"
+        (input)="backgroundOpacity.set(+$any($event.target).value)"
+        class="slider"
+      />
+    </div>
+
+    <!-- Apply to All Tabs -->
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [checked]="applyToAll()"
+          (change)="applyToAll.set($any($event.target).checked)"
+        />
+        <span>Apply these settings to all tabs</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="cancel()">
+      <span>Cancel</span>
+    </button>
+    <button class="btn btn-primary" (click)="save()">
+      <span>{{ applyToAll() ? 'Apply to All Tabs' : 'Save' }}</span>
+    </button>
+  </div>
+</div>

@@ -27,7 +27,10 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "ignore": [
+                  "app-icons/meta/**"
+                ]
               }
             ],
             "styles": [

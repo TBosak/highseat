@@ -1,0 +1,178 @@
+<div class="modal-overlay" (click)="handleCancel()">
+  <div class="modal card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add New Card</h2>
+      <button class="btn btn-sm btn-secondary" (click)="handleCancel()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+
+    <form (ngSubmit)="handleSubmit()">
+      <!-- Basic Info -->
+      <div class="form-group">
+        <label for="title">Title *</label>
+        <input
+          id="title"
+          type="text"
+          [value]="title()"
+          (input)="title.set($any($event.target).value)"
+          placeholder="e.g. Plex Media Server"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="subtitle">Subtitle</label>
+        <input
+          id="subtitle"
+          type="text"
+          [value]="subtitle()"
+          (input)="subtitle.set($any($event.target).value)"
+          placeholder="e.g. Movies and TV Shows"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="url">URL</label>
+        <div class="input-with-icon">
+          <fa-icon [icon]="faLink" class="input-icon"></fa-icon>
+          <input
+            id="url"
+            type="url"
+            [value]="url()"
+            (input)="url.set($any($event.target).value)"
+            placeholder="https://plex.example.com"
+          />
+        </div>
+      </div>
+
+      <!-- Icon Selection -->
+      <div class="form-group">
+        <label>Icon</label>
+
+        <div class="icon-source-tabs">
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="iconSource() === 'catalog'"
+            (click)="iconSource.set('catalog')"
+          >
+            Icon Catalog
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="iconSource() === 'custom'"
+            (click)="setCustomIcon()"
+          >
+            Custom URL
+          </button>
+        </div>
+
+        @if (iconSource() === 'catalog') {
+          <div class="icon-catalog-section">
+            <!-- Search -->
+            <div class="icon-search">
+              <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
+              <input
+                type="text"
+                [value]="iconSearchQuery()"
+                (input)="searchIcons($any($event.target).value)"
+                placeholder="Search icons..."
+                class="search-input"
+              />
+            </div>
+
+            <!-- Categories -->
+            @if (!iconSearchQuery()) {
+              <div class="icon-categories">
+                @for (category of categories(); track category.id) {
+                  <button
+                    type="button"
+                    class="category-btn"
+                    [class.active]="selectedCategory() === category.id"
+                    (click)="selectCategory(category.id)"
+                  >
+                    {{ category.name }}
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Icon Grid -->
+            <div class="icon-grid">
+              @for (icon of filteredIcons(); track icon.id) {
+                <button
+                  type="button"
+                  class="icon-option"
+                  [class.selected]="selectedIconId() === icon.id"
+                  (click)="selectIcon(icon.id)"
+                  [title]="icon.name"
+                >
+                  <img [src]="icon.iconUrl" [alt]="icon.name" />
+                  <span class="icon-name">{{ icon.name }}</span>
+                </button>
+              }
+            </div>
+
+            @if (filteredIcons().length === 0) {
+              <div class="empty-state">
+                <p>No icons found</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="custom-icon-section">
+            <div class="input-with-icon">
+              <fa-icon [icon]="faImage" class="input-icon"></fa-icon>
+              <input
+                type="url"
+                [value]="customIconUrl()"
+                (input)="customIconUrl.set($any($event.target).value)"
+                placeholder="https://example.com/icon.png"
+              />
+            </div>
+            @if (customIconUrl()) {
+              <div class="icon-preview">
+                <img [src]="customIconUrl()" alt="Custom icon preview" />
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Preview -->
+      @if (title() || getSelectedIcon() || customIconUrl()) {
+        <div class="card-preview">
+          <label>Preview</label>
+          <div class="preview-card card">
+            @if (getSelectedIcon() || customIconUrl()) {
+              <div class="preview-icon">
+                <img
+                  [src]="iconSource() === 'catalog' ? getSelectedIcon()?.iconUrl : customIconUrl()"
+                  [alt]="title() || 'Card preview'"
+                />
+              </div>
+            }
+            <div class="preview-content">
+              <h3>{{ title() || 'Card Title' }}</h3>
+              @if (subtitle()) {
+                <p>{{ subtitle() }}</p>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="handleCancel()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Add Card
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
