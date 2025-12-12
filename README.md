@@ -7,7 +7,7 @@ A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and
 - **Frontend:** Angular (latest) with standalone components, Signals, and Angular CDK
 - **Backend:** Bun runtime with Hono framework
 - **Database:** SQLite with Drizzle ORM
-- **UI:** Angular CDK DragDrop, CSS Grid, and glassmorphic/neobrutal themes
+- **UI:** Angular CDK DragDrop, CSS Grid, and highly customizable themes
 
 ## Features
 
