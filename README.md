@@ -18,7 +18,7 @@ A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and
 - 🔐 **JWT Authentication** - Secure login with refresh tokens
 - 👥 **RBAC** - Role-based access control (Admin, Designer, Editor, Viewer)
 - 📱 **Responsive Grid** - Drag & drop cards with resize support
-- 🔌 **Service Catalogs** - Icon integration from UnRAID, TrueNAS, and more
+- 🔌 **Service Catalogs** - Icon integration of popular self-hosted services
 
 ## Quick Start
 
