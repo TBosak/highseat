@@ -20,6 +20,10 @@ const createCardSchema = z.object({
   iconCatalogId: z.string().optional(),
   iconCustomUrl: z.string().optional(),
   meta: z.record(z.any()).optional(),
+  widgets: z.array(z.object({
+    type: z.string(),
+    config: z.record(z.any())
+  })).optional(),
   layoutX: z.number().int().default(0),
   layoutY: z.number().int().default(0),
   layoutW: z.number().int().default(1),
@@ -30,7 +34,11 @@ const createCardSchema = z.object({
 const updateCardSchema = z.object({
   title: z.string().min(1).optional(),
   subtitle: z.string().optional(),
-  serviceType: z.string().optional()
+  serviceType: z.string().optional(),
+  widgets: z.array(z.object({
+    type: z.string(),
+    config: z.record(z.any())
+  })).optional()
 });
 
 const updateCardLayoutSchema = z.object({
@@ -54,7 +62,39 @@ cardsRouter.get('/zone/:zoneId', requirePermission('board:view'), async (c) => {
     .from(cards)
     .where(eq(cards.zoneId, zoneId));
 
-  return c.json(zoneCards);
+  // Parse JSON fields before returning
+  const parsedCards = zoneCards.map(card => {
+    console.log('[GET /zone/:zoneId] Card:', card.id, '| widgets type:', typeof card.widgets, '| value:', card.widgets);
+
+    let parsedMeta = undefined;
+    let parsedWidgets = undefined;
+
+    if (card.meta && typeof card.meta === 'string') {
+      try {
+        parsedMeta = JSON.parse(card.meta);
+      } catch (e) {
+        console.error('Failed to parse meta:', e);
+      }
+    }
+
+    if (card.widgets && typeof card.widgets === 'string') {
+      console.log('[GET /zone/:zoneId] Parsing widgets for card:', card.id);
+      try {
+        parsedWidgets = JSON.parse(card.widgets);
+        console.log('[GET /zone/:zoneId] Successfully parsed widgets:', parsedWidgets);
+      } catch (e) {
+        console.error('[GET /zone/:zoneId] Failed to parse widgets:', e);
+      }
+    }
+
+    return {
+      ...card,
+      meta: parsedMeta,
+      widgets: parsedWidgets
+    };
+  });
+
+  return c.json(parsedCards);
 });
 
 // Get single card
@@ -71,22 +111,74 @@ cardsRouter.get('/:cardId', requirePermission('board:view'), async (c) => {
     return c.json({ error: 'Card not found' }, 404);
   }
 
-  return c.json(card);
+  // Parse JSON fields before returning
+  let parsedMeta = undefined;
+  let parsedWidgets = undefined;
+
+  if (card.meta && typeof card.meta === 'string') {
+    try {
+      parsedMeta = JSON.parse(card.meta);
+    } catch (e) {
+      console.error('Failed to parse meta:', e);
+    }
+  }
+
+  if (card.widgets && typeof card.widgets === 'string') {
+    try {
+      parsedWidgets = JSON.parse(card.widgets);
+    } catch (e) {
+      console.error('Failed to parse widgets:', e);
+    }
+  }
+
+  return c.json({
+    ...card,
+    meta: parsedMeta,
+    widgets: parsedWidgets
+  });
 });
 
 // Create card
 cardsRouter.post('/', requirePermission('card:add'), zValidator('json', createCardSchema), async (c) => {
   const data = c.req.valid('json');
 
-  // Serialize meta if present
+  // Serialize meta and widgets if present
   const cardData: any = { ...data };
   if (data.meta) {
     cardData.meta = JSON.stringify(data.meta);
   }
+  if (data.widgets) {
+    cardData.widgets = JSON.stringify(data.widgets);
+    console.log('[POST /] Serializing widgets:', data.widgets);
+  }
 
   const [card] = await db.insert(cards).values(cardData).returning();
 
-  return c.json(card, 201);
+  // Parse JSON fields before returning
+  let parsedMeta = undefined;
+  let parsedWidgets = undefined;
+
+  if (card.meta && typeof card.meta === 'string') {
+    try {
+      parsedMeta = JSON.parse(card.meta);
+    } catch (e) {
+      console.error('Failed to parse meta:', e);
+    }
+  }
+
+  if (card.widgets && typeof card.widgets === 'string') {
+    try {
+      parsedWidgets = JSON.parse(card.widgets);
+    } catch (e) {
+      console.error('Failed to parse widgets:', e);
+    }
+  }
+
+  return c.json({
+    ...card,
+    meta: parsedMeta,
+    widgets: parsedWidgets
+  }, 201);
 });
 
 // Update card
@@ -94,9 +186,16 @@ cardsRouter.patch('/:cardId', requirePermission('card:edit'), zValidator('json',
   const cardId = c.req.param('cardId');
   const data = c.req.valid('json');
 
+  // Serialize widgets if present
+  const updateData: any = { ...data, updatedAt: new Date() };
+  if (data.widgets) {
+    updateData.widgets = JSON.stringify(data.widgets);
+    console.log('[PATCH /:cardId] Serializing widgets:', data.widgets);
+  }
+
   const [card] = await db
     .update(cards)
-    .set({ ...data, updatedAt: new Date() })
+    .set(updateData)
     .where(eq(cards.id, cardId))
     .returning();
 
@@ -104,7 +203,31 @@ cardsRouter.patch('/:cardId', requirePermission('card:edit'), zValidator('json',
     return c.json({ error: 'Card not found' }, 404);
   }
 
-  return c.json(card);
+  // Parse JSON fields before returning
+  let parsedMeta = undefined;
+  let parsedWidgets = undefined;
+
+  if (card.meta && typeof card.meta === 'string') {
+    try {
+      parsedMeta = JSON.parse(card.meta);
+    } catch (e) {
+      console.error('Failed to parse meta:', e);
+    }
+  }
+
+  if (card.widgets && typeof card.widgets === 'string') {
+    try {
+      parsedWidgets = JSON.parse(card.widgets);
+    } catch (e) {
+      console.error('Failed to parse widgets:', e);
+    }
+  }
+
+  return c.json({
+    ...card,
+    meta: parsedMeta,
+    widgets: parsedWidgets
+  });
 });
 
 // Update card layout

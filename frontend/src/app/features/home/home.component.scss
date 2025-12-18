@@ -94,6 +94,7 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  margin-left: auto; // Always stays on the right, even when board-tabs is hidden
 }
 
 .user-menu {

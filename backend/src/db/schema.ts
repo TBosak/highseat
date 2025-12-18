@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 
@@ -11,6 +11,7 @@ export const users = sqliteTable('users', {
   roles: text('roles').notNull().default('["viewer"]'), // JSON array
   preferredThemeId: text('preferred_theme_id').references(() => themes.id),
   preferredStyleMode: text('preferred_style_mode'),
+  hideLogo: integer('hide_logo', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 });
@@ -30,6 +31,9 @@ export const roles = sqliteTable('roles', {
 export const themes = sqliteTable('themes', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   name: text('name').notNull(),
+  author: text('author'),
+  variant: text('variant').default('dark'), // 'dark' | 'light'
+  isCustom: integer('is_custom', { mode: 'boolean' }).default(false),
   baseScheme: text('base_scheme').notNull().default('base16'), // 'base16' | 'base24'
   tokens: text('tokens').notNull(), // JSON object
   styleMode: text('style_mode').notNull().default('glassmorphic'), // 'glassmorphic' | 'neobrutal' | etc.
@@ -66,7 +70,10 @@ export const tabs = sqliteTable('tabs', {
   backgroundOpacity: integer('background_opacity').default(100), // 0-100
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
-});
+}, (table) => ({
+  // Composite index for efficiently querying ordered tabs by board
+  boardOrderIdx: index('idx_tabs_board_order').on(table.boardId, table.order)
+}));
 
 // Zones table
 export const zones = sqliteTable('zones', {
@@ -75,7 +82,10 @@ export const zones = sqliteTable('zones', {
   name: text('name').notNull(),
   order: integer('order').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
-});
+}, (table) => ({
+  // Composite index for efficiently querying ordered zones by tab
+  tabOrderIdx: index('idx_zones_tab_order').on(table.tabId, table.order)
+}));
 
 // Cards table
 export const cards = sqliteTable('cards', {
@@ -122,7 +132,10 @@ export const refreshTokens = sqliteTable('refresh_tokens', {
   token: text('token').notNull().unique(),
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
-});
+}, (table) => ({
+  // Index for token cleanup queries that delete expired tokens
+  expiresAtIdx: index('idx_refresh_tokens_expires_at').on(table.expiresAt)
+}));
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

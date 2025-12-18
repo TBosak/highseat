@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import { faArrowLeft, faPlus, faTrash, faEdit, faSpinner, faUser } from '@fortaw
 import { BoardService } from '../../core/services/board.service';
 import { UserService, CreateUserData, UpdateUserData } from '../../core/services/user.service';
 import { RoleService, Role, CreateRoleData, UpdateRoleData } from '../../core/services/role.service';
+import { AuthService } from '../../core/services/auth.service';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
 import type { Board, User, Permission } from '../../core/models';
 
@@ -15,12 +16,14 @@ import type { Board, User, Permission } from '../../core/models';
   standalone: true,
   imports: [CommonModule, FormsModule, FontAwesomeModule, HasPermissionDirective],
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss']
+  styleUrls: ['./settings.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent implements OnInit {
   private boardService = inject(BoardService);
   private userService = inject(UserService);
   private roleService = inject(RoleService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   // Icons
@@ -76,10 +79,23 @@ export class SettingsComponent implements OnInit {
     'user:manage'
   ];
 
+  // User preferences
+  user = this.authService.user;
+  hideLogo = signal(false);
+
+  // Expanded permissions tracking
+  expandedPermissions = signal<Set<string>>(new Set());
+
   ngOnInit(): void {
     this.loadBoards();
     this.loadUsers();
     this.loadRoles();
+
+    // Initialize hideLogo from user data
+    const currentUser = this.user();
+    if (currentUser) {
+      this.hideLogo.set(currentUser.hideLogo || false);
+    }
   }
 
   loadBoards(): void {
@@ -421,5 +437,43 @@ export class SettingsComponent implements OnInit {
     this.newRoleName.set('');
     this.newRoleDescription.set('');
     this.newRolePermissions.set([]);
+  }
+
+  // Permissions Expansion Methods
+
+  togglePermissionsExpanded(roleId: string): void {
+    this.expandedPermissions.update(expanded => {
+      const newSet = new Set(expanded);
+      if (newSet.has(roleId)) {
+        newSet.delete(roleId);
+      } else {
+        newSet.add(roleId);
+      }
+      return newSet;
+    });
+  }
+
+  isPermissionsExpanded(roleId: string): boolean {
+    return this.expandedPermissions().has(roleId);
+  }
+
+  // User Preferences Methods
+
+  toggleHideLogo(): void {
+    const newValue = !this.hideLogo();
+    this.hideLogo.set(newValue);
+
+    this.userService.updatePreferences({ hideLogo: newValue }).subscribe({
+      next: (updatedUser) => {
+        // Update the user in AuthService
+        this.authService.updateUser(updatedUser);
+      },
+      error: (err) => {
+        console.error('Failed to update preference:', err);
+        // Revert on error
+        this.hideLogo.set(!newValue);
+        alert('Failed to update preference');
+      }
+    });
   }
 }

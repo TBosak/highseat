@@ -10,152 +10,161 @@
   </header>
 
   <main class="settings-content">
-    <section class="settings-section">
-      <h2>Board Management</h2>
-
+    <section class="settings-section settings-section--boards">
       <div class="section-header">
+        <div class="section-title">
+          <h2>Board Management</h2>
+          <p class="section-subtitle">Create and organize boards for your homelab.</p>
+        </div>
+
         <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
           <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
           <span>Create Board</span>
         </button>
       </div>
 
+
       @if (loading()) {
-        <div class="loading-state">
-          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
-          <p>Loading boards...</p>
-        </div>
+      <div class="loading-state">
+        <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+        <p>Loading boards...</p>
+      </div>
       } @else if (boards().length === 0) {
-        <div class="empty-state">
-          <p>No boards created yet.</p>
-          <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
-            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-            <span>Create Your First Board</span>
-          </button>
-        </div>
+      <div class="empty-state">
+        <p>No boards created yet.</p>
+        <button class="btn btn-primary" (click)="showCreateModal.set(true)" *hasPermission="'board:edit'">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Your First Board</span>
+        </button>
+      </div>
       } @else {
-        <div class="table-container">
-          <table class="settings-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>Created</th>
-                <th class="actions-col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (board of boards(); track board.id) {
-                <tr>
-                  <td>
-                    <div class="table-cell-main">
-                      <span class="item-name">{{ board.name }}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="board-slug">{{ board.slug }}</span>
-                  </td>
-                  <td>
-                    <span class="table-meta">{{ board.createdAt | date:'short' }}</span>
-                  </td>
-                  <td class="actions-col">
-                    <div class="table-actions" *hasPermission="'board:edit'">
-                      <button class="btn-icon" (click)="startEditBoard(board)" title="Edit">
-                        <fa-icon [icon]="faEdit"></fa-icon>
-                      </button>
-                      <button class="btn-icon btn-danger" (click)="deleteBoard(board, $event)" title="Delete">
-                        <fa-icon [icon]="faTrash"></fa-icon>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+      <div class="table-container">
+        <table class="settings-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>Created</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (board of boards(); track board.id) {
+            <tr>
+              <td>
+                <div class="table-cell-main">
+                  <span class="item-name">{{ board.name }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="board-slug">{{ board.slug }}</span>
+              </td>
+              <td>
+                <span class="table-meta">{{ board.createdAt | date:'short' }}</span>
+              </td>
+              <td class="actions-col">
+                <div class="table-actions" *hasPermission="'board:edit'">
+                  <button class="btn-icon" (click)="startEditBoard(board)" title="Edit">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteBoard(board, $event)" title="Delete">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       }
     </section>
 
     <!-- User Management Section -->
-    <section class="settings-section" *hasPermission="'user:manage'">
-      <h2>User Management</h2>
-
+    <section class="settings-section settings-section--users" *hasPermission="'user:manage'">
       <div class="section-header">
+        <div class="section-title">
+          <h2>User Management</h2>
+          <p class="section-subtitle">Manage accounts and assign roles.</p>
+        </div>
+
         <button class="btn btn-primary" (click)="openCreateUserModal()">
           <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
           <span>Create User</span>
         </button>
       </div>
-
       @if (usersLoading()) {
-        <div class="loading-state">
-          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
-          <p>Loading users...</p>
-        </div>
+      <div class="loading-state">
+        <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+        <p>Loading users...</p>
+      </div>
       } @else if (users().length === 0) {
-        <div class="empty-state">
-          <p>No users created yet.</p>
-          <button class="btn btn-primary" (click)="openCreateUserModal()">
-            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-            <span>Create Your First User</span>
-          </button>
-        </div>
+      <div class="empty-state">
+        <p>No users created yet.</p>
+        <button class="btn btn-primary" (click)="openCreateUserModal()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Your First User</span>
+        </button>
+      </div>
       } @else {
-        <div class="table-container">
-          <table class="settings-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role(s)</th>
-                <th class="actions-col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (user of users(); track user.id) {
-                <tr>
-                  <td>
-                    <div class="table-cell-user">
-                      <div class="user-avatar">
-                        <fa-icon [icon]="faUser"></fa-icon>
-                      </div>
-                      <div class="user-info-compact">
-                        <span class="item-name">{{ user.username }}</span>
-                        @if (user.displayName) {
-                          <span class="item-subtitle">{{ user.displayName }}</span>
-                        }
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="role-chips">
-                      @for (role of user.roles; track role) {
-                        <span class="role-chip">{{ role }}</span>
-                      }
-                    </div>
-                  </td>
-                  <td class="actions-col">
-                    <div class="table-actions">
-                      <button class="btn-icon" (click)="startEditUser(user)" title="Edit">
-                        <fa-icon [icon]="faEdit"></fa-icon>
-                      </button>
-                      <button class="btn-icon btn-danger" (click)="deleteUser(user, $event)" title="Delete">
-                        <fa-icon [icon]="faTrash"></fa-icon>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+      <div class="table-container">
+        <table class="settings-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role(s)</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+            <tr>
+              <td>
+                <div class="table-cell-user">
+                  <div class="user-avatar">
+                    <fa-icon [icon]="faUser"></fa-icon>
+                  </div>
+                  <div class="user-info-compact">
+                    <span class="item-name">{{ user.username }}</span>
+                    @if (user.displayName) {
+                    <span class="item-subtitle">{{ user.displayName }}</span>
+                    }
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="role-chips">
+                  @for (role of user.roles; track role) {
+                  <span class="role-chip">{{ role }}</span>
+                  }
+                </div>
+              </td>
+              <td class="actions-col">
+                <div class="table-actions">
+                  <button class="btn-icon" (click)="startEditUser(user)" title="Edit">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteUser(user, $event)" title="Delete">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       }
     </section>
 
     <!-- Role Management Section -->
-    <section class="settings-section" *hasPermission="'role:manage'">
-      <h2>Role Management</h2>
-
+    <section class="settings-section settings-section--roles" *hasPermission="'role:manage'">
       <div class="section-header">
+        <div class="section-title">
+          <h2>Role Management</h2>
+          <p class="section-subtitle">Define what different roles can do.</p>
+        </div>
+
         <button class="btn btn-primary" (click)="openCreateRoleModal()">
           <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
           <span>Create Role</span>
@@ -163,426 +172,364 @@
       </div>
 
       @if (rolesLoading()) {
-        <div class="loading-state">
-          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
-          <p>Loading roles...</p>
-        </div>
+      <div class="loading-state">
+        <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+        <p>Loading roles...</p>
+      </div>
       } @else if (roles().length === 0) {
-        <div class="empty-state">
-          <p>No custom roles created yet.</p>
-          <button class="btn btn-primary" (click)="openCreateRoleModal()">
-            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-            <span>Create Your First Role</span>
-          </button>
-        </div>
+      <div class="empty-state">
+        <p>No custom roles created yet.</p>
+        <button class="btn btn-primary" (click)="openCreateRoleModal()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Your First Role</span>
+        </button>
+      </div>
       } @else {
-        <div class="table-container">
-          <table class="settings-table">
-            <thead>
-              <tr>
-                <th>Role</th>
-                <th>Description</th>
-                <th>Permissions</th>
-                <th class="actions-col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (role of roles(); track role.id) {
-                <tr>
-                  <td>
-                    <div class="table-cell-main">
-                      <span class="item-name">
-                        {{ role.name }}
-                        @if (role.isSystem) {
-                          <span class="system-badge-inline">System</span>
-                        }
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    @if (role.description) {
-                      <span class="table-meta">{{ role.description }}</span>
-                    } @else {
-                      <span class="table-meta text-muted">—</span>
+      <div class="table-container">
+        <table class="settings-table">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Description</th>
+              <th>Permissions</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (role of roles(); track role.id) {
+            <tr>
+              <td>
+                <div class="table-cell-main">
+                  <span class="item-name">
+                    {{ role.name }}
+                    @if (role.isSystem) {
+                    <span class="system-badge-inline">System</span>
                     }
-                  </td>
-                  <td>
-                    <div class="permissions-compact">
-                      <span class="permission-count">{{ role.permissions.length }} permissions</span>
-                      <div class="permission-chips">
-                        @for (permission of role.permissions.slice(0, 3); track permission) {
-                          <span class="permission-chip">{{ permission }}</span>
-                        }
-                        @if (role.permissions.length > 3) {
-                          <span class="permission-chip more">+{{ role.permissions.length - 3 }}</span>
-                        }
-                      </div>
-                    </div>
-                  </td>
-                  <td class="actions-col">
-                    <div class="table-actions">
-                      @if (!role.isSystem) {
-                        <button class="btn-icon" (click)="startEditRole(role)" title="Edit">
-                          <fa-icon [icon]="faEdit"></fa-icon>
-                        </button>
-                        <button class="btn-icon btn-danger" (click)="deleteRole(role, $event)" title="Delete">
-                          <fa-icon [icon]="faTrash"></fa-icon>
-                        </button>
+                  </span>
+                </div>
+              </td>
+              <td>
+                @if (role.description) {
+                <span class="table-meta">{{ role.description }}</span>
+                } @else {
+                <span class="table-meta text-muted">—</span>
+                }
+              </td>
+              <td>
+                <div class="permissions-compact">
+                  <span class="permission-count">{{ role.permissions.length }} permissions</span>
+                  <div class="permission-chips">
+                    @if (isPermissionsExpanded(role.id)) {
+                      @for (permission of role.permissions; track permission) {
+                        <span class="permission-chip">{{ permission }}</span>
                       }
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+                      @if (role.permissions.length > 3) {
+                        <span class="permission-chip more" (click)="togglePermissionsExpanded(role.id)" title="Show less">−</span>
+                      }
+                    } @else {
+                      @for (permission of role.permissions.slice(0, 3); track permission) {
+                        <span class="permission-chip">{{ permission }}</span>
+                      }
+                      @if (role.permissions.length > 3) {
+                        <span class="permission-chip more" (click)="togglePermissionsExpanded(role.id)" title="Show all permissions">+{{ role.permissions.length - 3 }}</span>
+                      }
+                    }
+                  </div>
+                </div>
+              </td>
+              <td class="actions-col">
+                <div class="table-actions">
+                  @if (!role.isSystem) {
+                  <button class="btn-icon" (click)="startEditRole(role)" title="Edit">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteRole(role, $event)" title="Delete">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                  </button>
+                  }
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       }
+    </section>
+
+    <!-- User Preferences Section -->
+    <section class="settings-section settings-section--preferences">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>User Preferences</h2>
+          <p class="section-subtitle">Customize your dashboard experience.</p>
+        </div>
+      </div>
+
+      <div class="preferences-list">
+        <div class="preference-item">
+          <div class="preference-info">
+            <span class="preference-label">Hide Highseat Logo</span>
+            <p class="preference-description">Hide the Highseat logo from the main dashboard header</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [checked]="hideLogo()" (change)="toggleHideLogo()" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
     </section>
   </main>
 
   <!-- Create Board Modal -->
   @if (showCreateModal()) {
-    <div class="modal-overlay" (click)="showCreateModal.set(false)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Create New Board</h2>
+  <div class="modal-overlay" (click)="showCreateModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Create New Board</h2>
 
-        <div class="form-group">
-          <label for="boardName">Board Name</label>
-          <input
-            type="text"
-            id="boardName"
-            class="input"
-            [value]="newBoardName()"
-            (input)="newBoardName.set($any($event.target).value); generateSlug()"
-            placeholder="My Homelab"
-          />
-        </div>
+      <div class="form-group">
+        <label for="boardName">Board Name</label>
+        <input type="text" id="boardName" class="input" [value]="newBoardName()"
+          (input)="newBoardName.set($any($event.target).value); generateSlug()" placeholder="My Homelab" />
+      </div>
 
-        <div class="form-group">
-          <label for="boardSlug">Slug (URL)</label>
-          <input
-            type="text"
-            id="boardSlug"
-            class="input"
-            [value]="newBoardSlug()"
-            (input)="newBoardSlug.set($any($event.target).value)"
-            placeholder="my-homelab"
-          />
-        </div>
+      <div class="form-group">
+        <label for="boardSlug">Slug (URL)</label>
+        <input type="text" id="boardSlug" class="input" [value]="newBoardSlug()"
+          (input)="newBoardSlug.set($any($event.target).value)" placeholder="my-homelab" />
+      </div>
 
-        <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showCreateModal.set(false)">
-            <span>Cancel</span>
-          </button>
-          <button class="btn btn-primary" (click)="createBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
-            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-            <span>Create Board</span>
-          </button>
-        </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showCreateModal.set(false)">
+          <span>Cancel</span>
+        </button>
+        <button class="btn btn-primary" (click)="createBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Board</span>
+        </button>
       </div>
     </div>
+  </div>
   }
 
   <!-- Edit Board Modal -->
   @if (showEditModal()) {
-    <div class="modal-overlay" (click)="showEditModal.set(false); editingBoard.set(null)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Edit Board</h2>
+  <div class="modal-overlay" (click)="showEditModal.set(false); editingBoard.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Edit Board</h2>
 
-        <div class="form-group">
-          <label for="editBoardName">Board Name</label>
-          <input
-            type="text"
-            id="editBoardName"
-            class="input"
-            [value]="newBoardName()"
-            (input)="newBoardName.set($any($event.target).value); generateSlug()"
-            placeholder="My Homelab"
-          />
-        </div>
+      <div class="form-group">
+        <label for="editBoardName">Board Name</label>
+        <input type="text" id="editBoardName" class="input" [value]="newBoardName()"
+          (input)="newBoardName.set($any($event.target).value); generateSlug()" placeholder="My Homelab" />
+      </div>
 
-        <div class="form-group">
-          <label for="editBoardSlug">Slug (URL)</label>
-          <input
-            type="text"
-            id="editBoardSlug"
-            class="input"
-            [value]="newBoardSlug()"
-            (input)="newBoardSlug.set($any($event.target).value)"
-            placeholder="my-homelab"
-          />
-        </div>
+      <div class="form-group">
+        <label for="editBoardSlug">Slug (URL)</label>
+        <input type="text" id="editBoardSlug" class="input" [value]="newBoardSlug()"
+          (input)="newBoardSlug.set($any($event.target).value)" placeholder="my-homelab" />
+      </div>
 
-        <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showEditModal.set(false); editingBoard.set(null)">
-            <span>Cancel</span>
-          </button>
-          <button class="btn btn-primary" (click)="updateBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
-            <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
-            <span>Update Board</span>
-          </button>
-        </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showEditModal.set(false); editingBoard.set(null)">
+          <span>Cancel</span>
+        </button>
+        <button class="btn btn-primary" (click)="updateBoard()" [disabled]="!newBoardName() || !newBoardSlug()">
+          <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+          <span>Update Board</span>
+        </button>
       </div>
     </div>
+  </div>
   }
 
   <!-- Create User Modal -->
   @if (showCreateUserModal()) {
-    <div class="modal-overlay" (click)="showCreateUserModal.set(false)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Create New User</h2>
+  <div class="modal-overlay" (click)="showCreateUserModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Create New User</h2>
 
-        <div class="form-group">
-          <label for="createUsername">Username *</label>
-          <input
-            type="text"
-            id="createUsername"
-            class="input"
-            [value]="newUsername()"
-            (input)="newUsername.set($any($event.target).value)"
-            placeholder="johndoe"
-          />
-        </div>
+      <div class="form-group">
+        <label for="createUsername">Username *</label>
+        <input type="text" id="createUsername" class="input" [value]="newUsername()"
+          (input)="newUsername.set($any($event.target).value)" placeholder="johndoe" />
+      </div>
 
-        <div class="form-group">
-          <label for="createPassword">Password *</label>
-          <input
-            type="password"
-            id="createPassword"
-            class="input"
-            [value]="newUserPassword()"
-            (input)="newUserPassword.set($any($event.target).value)"
-            placeholder="********"
-          />
-        </div>
+      <div class="form-group">
+        <label for="createPassword">Password *</label>
+        <input type="password" id="createPassword" class="input" [value]="newUserPassword()"
+          (input)="newUserPassword.set($any($event.target).value)" placeholder="********" />
+      </div>
 
-        <div class="form-group">
-          <label for="createDisplayName">Display Name</label>
-          <input
-            type="text"
-            id="createDisplayName"
-            class="input"
-            [value]="newUserDisplayName()"
-            (input)="newUserDisplayName.set($any($event.target).value)"
-            placeholder="John Doe"
-          />
-        </div>
+      <div class="form-group">
+        <label for="createDisplayName">Display Name</label>
+        <input type="text" id="createDisplayName" class="input" [value]="newUserDisplayName()"
+          (input)="newUserDisplayName.set($any($event.target).value)" placeholder="John Doe" />
+      </div>
 
-        <div class="form-group">
-          <label>Roles *</label>
-          <div class="roles-selector">
-            @for (role of availableRoles(); track role) {
-              <label class="role-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="newUserRoles().includes(role)"
-                  (change)="toggleRole(role)"
-                />
-                <span>{{ role }}</span>
-              </label>
-            }
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showCreateUserModal.set(false)">
-            <span>Cancel</span>
-          </button>
-          <button class="btn btn-primary" (click)="createUser()" [disabled]="!newUsername() || !newUserPassword()">
-            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-            <span>Create User</span>
-          </button>
+      <div class="form-group">
+        <label>Roles *</label>
+        <div class="roles-selector">
+          @for (role of availableRoles(); track role) {
+          <label class="role-checkbox">
+            <input type="checkbox" [checked]="newUserRoles().includes(role)" (change)="toggleRole(role)" />
+            <span>{{ role }}</span>
+          </label>
+          }
         </div>
       </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showCreateUserModal.set(false)">
+          <span>Cancel</span>
+        </button>
+        <button class="btn btn-primary" (click)="createUser()" [disabled]="!newUsername() || !newUserPassword()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create User</span>
+        </button>
+      </div>
     </div>
+  </div>
   }
 
   <!-- Edit User Modal -->
   @if (showEditUserModal()) {
-    <div class="modal-overlay" (click)="showEditUserModal.set(false); editingUser.set(null)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Edit User</h2>
+  <div class="modal-overlay" (click)="showEditUserModal.set(false); editingUser.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Edit User</h2>
 
-        <div class="form-group">
-          <label for="editUsername">Username *</label>
-          <input
-            type="text"
-            id="editUsername"
-            class="input"
-            [value]="newUsername()"
-            (input)="newUsername.set($any($event.target).value)"
-            placeholder="johndoe"
-          />
-        </div>
+      <div class="form-group">
+        <label for="editUsername">Username *</label>
+        <input type="text" id="editUsername" class="input" [value]="newUsername()"
+          (input)="newUsername.set($any($event.target).value)" placeholder="johndoe" />
+      </div>
 
-        <div class="form-group">
-          <label for="editPassword">Password (leave blank to keep current)</label>
-          <input
-            type="password"
-            id="editPassword"
-            class="input"
-            [value]="newUserPassword()"
-            (input)="newUserPassword.set($any($event.target).value)"
-            placeholder="********"
-          />
-        </div>
+      <div class="form-group">
+        <label for="editPassword">Password (leave blank to keep current)</label>
+        <input type="password" id="editPassword" class="input" [value]="newUserPassword()"
+          (input)="newUserPassword.set($any($event.target).value)" placeholder="********" />
+      </div>
 
-        <div class="form-group">
-          <label for="editDisplayName">Display Name</label>
-          <input
-            type="text"
-            id="editDisplayName"
-            class="input"
-            [value]="newUserDisplayName()"
-            (input)="newUserDisplayName.set($any($event.target).value)"
-            placeholder="John Doe"
-          />
-        </div>
+      <div class="form-group">
+        <label for="editDisplayName">Display Name</label>
+        <input type="text" id="editDisplayName" class="input" [value]="newUserDisplayName()"
+          (input)="newUserDisplayName.set($any($event.target).value)" placeholder="John Doe" />
+      </div>
 
-        <div class="form-group">
-          <label>Roles *</label>
-          <div class="roles-selector">
-            @for (role of availableRoles(); track role) {
-              <label class="role-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="newUserRoles().includes(role)"
-                  (change)="toggleRole(role)"
-                />
-                <span>{{ role }}</span>
-              </label>
-            }
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showEditUserModal.set(false); editingUser.set(null)">
-            <span>Cancel</span>
-          </button>
-          <button class="btn btn-primary" (click)="updateUser()" [disabled]="!newUsername()">
-            <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
-            <span>Update User</span>
-          </button>
+      <div class="form-group">
+        <label>Roles *</label>
+        <div class="roles-selector">
+          @for (role of availableRoles(); track role) {
+          <label class="role-checkbox">
+            <input type="checkbox" [checked]="newUserRoles().includes(role)" (change)="toggleRole(role)" />
+            <span>{{ role }}</span>
+          </label>
+          }
         </div>
       </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showEditUserModal.set(false); editingUser.set(null)">
+          <span>Cancel</span>
+        </button>
+        <button class="btn btn-primary" (click)="updateUser()" [disabled]="!newUsername()">
+          <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+          <span>Update User</span>
+        </button>
+      </div>
     </div>
+  </div>
   }
 
   <!-- Create Role Modal -->
   @if (showCreateRoleModal()) {
-    <div class="modal-overlay" (click)="showCreateRoleModal.set(false)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Create New Role</h2>
+  <div class="modal-overlay" (click)="showCreateRoleModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Create New Role</h2>
 
-        <div class="form-group">
-          <label for="createRoleName">Role Name *</label>
-          <input
-            type="text"
-            id="createRoleName"
-            class="input"
-            [value]="newRoleName()"
-            (input)="newRoleName.set($any($event.target).value)"
-            placeholder="content-manager"
-          />
-        </div>
+      <div class="form-group">
+        <label for="createRoleName">Role Name *</label>
+        <input type="text" id="createRoleName" class="input" [value]="newRoleName()"
+          (input)="newRoleName.set($any($event.target).value)" placeholder="content-manager" />
+      </div>
 
-        <div class="form-group">
-          <label for="createRoleDescription">Description</label>
-          <textarea
-            id="createRoleDescription"
-            class="input"
-            [value]="newRoleDescription()"
-            (input)="newRoleDescription.set($any($event.target).value)"
-            placeholder="Can manage content and media"
-            rows="3"
-          ></textarea>
-        </div>
+      <div class="form-group">
+        <label for="createRoleDescription">Description</label>
+        <textarea id="createRoleDescription" class="input" [value]="newRoleDescription()"
+          (input)="newRoleDescription.set($any($event.target).value)" placeholder="Can manage content and media"
+          rows="3"></textarea>
+      </div>
 
-        <div class="form-group">
-          <label>Permissions * (select at least one)</label>
-          <div class="permissions-selector">
-            @for (permission of availablePermissions; track permission) {
-              <label class="permission-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="newRolePermissions().includes(permission)"
-                  (change)="togglePermission(permission)"
-                />
-                <span>{{ permission }}</span>
-              </label>
-            }
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showCreateRoleModal.set(false)">
-            <span>Cancel</span>
-          </button>
-          <button class="btn btn-primary" (click)="createRole()" [disabled]="!newRoleName() || newRolePermissions().length === 0">
-            <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-            <span>Create Role</span>
-          </button>
+      <div class="form-group">
+        <label>Permissions * (select at least one)</label>
+        <div class="permissions-selector">
+          @for (permission of availablePermissions; track permission) {
+          <label class="permission-checkbox">
+            <input type="checkbox" [checked]="newRolePermissions().includes(permission)"
+              (change)="togglePermission(permission)" />
+            <span>{{ permission }}</span>
+          </label>
+          }
         </div>
       </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showCreateRoleModal.set(false)">
+          <span>Cancel</span>
+        </button>
+        <button class="btn btn-primary" (click)="createRole()"
+          [disabled]="!newRoleName() || newRolePermissions().length === 0">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Create Role</span>
+        </button>
+      </div>
     </div>
+  </div>
   }
 
   <!-- Edit Role Modal -->
   @if (showEditRoleModal()) {
-    <div class="modal-overlay" (click)="showEditRoleModal.set(false); editingRole.set(null)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Edit Role</h2>
+  <div class="modal-overlay" (click)="showEditRoleModal.set(false); editingRole.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>Edit Role</h2>
 
-        <div class="form-group">
-          <label for="editRoleName">Role Name *</label>
-          <input
-            type="text"
-            id="editRoleName"
-            class="input"
-            [value]="newRoleName()"
-            (input)="newRoleName.set($any($event.target).value)"
-            placeholder="content-manager"
-          />
-        </div>
+      <div class="form-group">
+        <label for="editRoleName">Role Name *</label>
+        <input type="text" id="editRoleName" class="input" [value]="newRoleName()"
+          (input)="newRoleName.set($any($event.target).value)" placeholder="content-manager" />
+      </div>
 
-        <div class="form-group">
-          <label for="editRoleDescription">Description</label>
-          <textarea
-            id="editRoleDescription"
-            class="input"
-            [value]="newRoleDescription()"
-            (input)="newRoleDescription.set($any($event.target).value)"
-            placeholder="Can manage content and media"
-            rows="3"
-          ></textarea>
-        </div>
+      <div class="form-group">
+        <label for="editRoleDescription">Description</label>
+        <textarea id="editRoleDescription" class="input" [value]="newRoleDescription()"
+          (input)="newRoleDescription.set($any($event.target).value)" placeholder="Can manage content and media"
+          rows="3"></textarea>
+      </div>
 
-        <div class="form-group">
-          <label>Permissions * (select at least one)</label>
-          <div class="permissions-selector">
-            @for (permission of availablePermissions; track permission) {
-              <label class="permission-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="newRolePermissions().includes(permission)"
-                  (change)="togglePermission(permission)"
-                />
-                <span>{{ permission }}</span>
-              </label>
-            }
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" (click)="showEditRoleModal.set(false); editingRole.set(null)">
-            <span>Cancel</span>
-          </button>
-          <button class="btn btn-primary" (click)="updateRole()" [disabled]="!newRoleName() || newRolePermissions().length === 0">
-            <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
-            <span>Update Role</span>
-          </button>
+      <div class="form-group">
+        <label>Permissions * (select at least one)</label>
+        <div class="permissions-selector">
+          @for (permission of availablePermissions; track permission) {
+          <label class="permission-checkbox">
+            <input type="checkbox" [checked]="newRolePermissions().includes(permission)"
+              (change)="togglePermission(permission)" />
+            <span>{{ permission }}</span>
+          </label>
+          }
         </div>
       </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showEditRoleModal.set(false); editingRole.set(null)">
+          <span>Cancel</span>
+        </button>
+        <button class="btn btn-primary" (click)="updateRole()"
+          [disabled]="!newRoleName() || newRolePermissions().length === 0">
+          <fa-icon [icon]="faEdit" class="icon-sm"></fa-icon>
+          <span>Update Role</span>
+        </button>
+      </div>
     </div>
+  </div>
   }
 </div>

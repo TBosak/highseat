@@ -1,11 +1,15 @@
 <div class="board-view-container" [attr.data-design-mode]="designMode.isDesignMode()">
-  <!-- Tab background layer -->
+  <!-- Tab background layer with lazy loading optimization -->
   @if (currentTab()?.backgroundImage) {
-    <div
-      class="tab-background"
-      [style.background-image]="'url(' + currentTab()!.backgroundImage + ')'"
-      [style.filter]="'blur(' + (currentTab()!.backgroundBlur || 0) + 'px) opacity(' + (currentTab()!.backgroundOpacity || 100) + '%)'"
-    ></div>
+    <div class="tab-background">
+      <img
+        [src]="currentTab()!.backgroundImage"
+        [alt]="'Background for ' + currentTab()!.name"
+        loading="lazy"
+        decoding="async"
+        [style.filter]="'blur(' + (currentTab()!.backgroundBlur || 0) + 'px) opacity(' + (currentTab()!.backgroundOpacity || 100) + '%)'"
+      />
+    </div>
   }
 
   @if (loading()) {
@@ -34,6 +38,7 @@
         #gridContainer
         class="grid-stack"
         [class.design-mode]="designMode.isDesignMode()"
+        [class.grid-initialized]="gridInitialized()"
       >
         @if (cards().length === 0) {
           <div class="empty-state">

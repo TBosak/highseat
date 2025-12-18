@@ -10,6 +10,7 @@
   "scripts": {
     "dev:frontend": "cd frontend && bun run dev",
     "dev:backend": "cd backend && bun run dev",
+    "update": "cd frontend && bun run update:icons && bun run update:schemes",
     "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
     "build:frontend": "cd frontend && bun run build",
     "build:backend": "cd backend && bun run build",

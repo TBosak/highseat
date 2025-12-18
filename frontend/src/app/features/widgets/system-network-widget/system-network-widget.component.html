@@ -1,0 +1,71 @@
+<div class="system-network-widget">
+  @if (connectionState() === 'connecting') {
+    <div class="status-message connecting">
+      <div class="spinner"></div>
+      <span>Connecting to system monitor...</span>
+    </div>
+  } @else if (connectionState() === 'disconnected' || connectionState() === 'error') {
+    <div class="status-message error">
+      <span>Connection lost</span>
+      <button class="reconnect-btn" (click)="reconnect()">Reconnect</button>
+    </div>
+  } @else if (networkStats()) {
+    <div class="network-container">
+      <!-- Total throughput -->
+      <div class="total-throughput">
+        <div class="throughput-card rx">
+          <span class="throughput-label">Download</span>
+          <span class="throughput-value">{{ formatSpeed(networkStats()!.rx) }}</span>
+          <span class="throughput-icon">↓</span>
+        </div>
+
+        <div class="throughput-card tx">
+          <span class="throughput-label">Upload</span>
+          <span class="throughput-value">{{ formatSpeed(networkStats()!.tx) }}</span>
+          <span class="throughput-icon">↑</span>
+        </div>
+      </div>
+
+      <!-- Interface details -->
+      @if (getFilteredInterfaces().length > 0) {
+        <div class="interfaces-container">
+          <div class="interfaces-header">Network Interfaces</div>
+
+          <div class="interfaces-list">
+            @for (iface of getFilteredInterfaces(); track iface.name) {
+              <div class="interface-card">
+                <div class="interface-header">
+                  <span class="interface-name">{{ iface.name }}</span>
+                  <span
+                    class="interface-status"
+                    [class.active]="iface.operstate === 'up'"
+                    [class.inactive]="iface.operstate !== 'up'"
+                  >
+                    {{ iface.operstate }}
+                  </span>
+                </div>
+
+                <div class="interface-stats">
+                  <div class="stat">
+                    <span class="stat-label">RX:</span>
+                    <span class="stat-value">{{ formatSpeed(iface.rx_sec) }}</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">TX:</span>
+                    <span class="stat-value">{{ formatSpeed(iface.tx_sec) }}</span>
+                  </div>
+                </div>
+
+                @if (iface.speed > 0) {
+                  <div class="interface-speed">
+                    Speed: {{ iface.speed }} Mbps
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

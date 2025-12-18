@@ -1,0 +1,282 @@
+.note-widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding: 0;
+  margin: 0;
+}
+
+.floating-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--base01);
+  border-top: 2px solid var(--base0D);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  padding: 0.75rem;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.toolbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  .toolbar-group {
+    display: flex;
+    gap: 0.25rem;
+    padding-right: 0.5rem;
+    border-right: 1px solid var(--base02);
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  .toolbar-btn {
+    padding: 0.375rem 0.625rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 32px;
+
+    &:hover:not(:disabled) {
+      background: var(--base02);
+      border-color: var(--base03);
+    }
+
+    &.active {
+      background: var(--base0D);
+      color: #fff;
+      border-color: var(--base0D);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    strong, em, s {
+      font-style: normal;
+      font-weight: inherit;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    s {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.tiptap-editor-container {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  overflow-x: visible;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &.read-only {
+    cursor: default;
+  }
+
+  // ngx-tiptap component
+  tiptap-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; // Allow flex shrinking
+  }
+
+  // Tiptap editor styles
+  :global {
+    .tiptap,
+    .ProseMirror {
+      outline: none;
+      height: 100%;
+      color: var(--text);
+      cursor: text;
+      pointer-events: auto;
+      overflow-y: auto;
+
+      > * + * {
+        margin-top: 0.75em;
+      }
+
+      h1, h2, h3 {
+        line-height: 1.1;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      h1 {
+        font-size: 2em;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+
+      h2 {
+        font-size: 1.5em;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+
+      h3 {
+        font-size: 1.25em;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+
+      p {
+        margin: 0.5em 0;
+        line-height: 1.6;
+      }
+
+      ul, ol, .bullet-list, .ordered-list {
+        padding-left: 3.5rem !important;
+        margin: 0.5em 0 !important;
+        list-style-position: outside !important;
+
+        li, .list-item {
+          margin: 0.25em 0 !important;
+          margin-left: 0 !important;
+          padding-left: 0.75rem !important;
+          line-height: 1.6;
+          display: list-item !important;
+
+          p {
+            margin: 0;
+            display: inline;
+          }
+        }
+      }
+
+      ul, .bullet-list {
+        list-style-type: disc !important;
+        list-style: disc outside !important;
+        padding-left: 4.5rem !important;
+      }
+
+      ol, .ordered-list {
+        list-style-type: decimal !important;
+        list-style: decimal outside !important;
+      }
+
+      // More specific selectors to override Tailwind reset
+      ul[data-type="bulletList"],
+      ul.bullet-list {
+        list-style-type: disc !important;
+        list-style-position: outside !important;
+        padding-left: 4.5rem !important;
+        margin-left: 0.5rem !important;
+      }
+
+      ol[data-type="orderedList"],
+      ol.ordered-list {
+        list-style-type: decimal !important;
+        list-style-position: outside !important;
+        padding-left: 3.5rem !important;
+      }
+
+      // Target list items
+      li.list-item {
+        display: list-item !important;
+        margin-left: 0 !important;
+      }
+
+      // Ensure nested lists work properly
+      ul ul {
+        list-style-type: circle !important;
+      }
+
+      ol ol {
+        list-style-type: lower-alpha !important;
+      }
+
+      blockquote {
+        border-left: 3px solid var(--base0D);
+        padding-left: 1rem;
+        margin: 1em 0;
+        font-style: italic;
+        color: var(--text-muted);
+      }
+
+      code {
+        background-color: var(--base02);
+        color: var(--base0E);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 0.9em;
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      pre {
+        background: var(--base01);
+        color: var(--text);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 1em 0;
+
+        code {
+          background: none;
+          padding: 0;
+          color: inherit;
+          font-size: 0.875em;
+        }
+      }
+
+      strong {
+        font-weight: 700;
+      }
+
+      em {
+        font-style: italic;
+      }
+
+      s {
+        text-decoration: line-through;
+      }
+
+      // Placeholder
+      p.is-editor-empty:first-child::before {
+        content: attr(data-placeholder);
+        float: left;
+        color: var(--text-muted);
+        pointer-events: none;
+        height: 0;
+      }
+    }
+
+    .ProseMirror-focused {
+      // Optional: add focus styles
+    }
+  }
+}

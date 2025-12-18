@@ -5,6 +5,7 @@ export interface User {
   roles: string[];
   preferredThemeId?: string;
   preferredStyleMode?: StyleMode;
+  hideLogo?: boolean;
 }
 
 export interface AuthResponse {
@@ -94,13 +95,146 @@ export interface CardStyle {
 }
 
 export interface CardWidget {
-  type: 'link' | 'status' | 'iframe' | 'metric' | 'custom';
+  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'custom';
   config: Record<string, any>;
+}
+
+export interface NoteWidgetConfig {
+  content: string; // HTML content from Tiptap editor
+  lastModified?: Date;
+}
+
+export interface SystemMetricsWidgetConfig {
+  showCPU?: boolean;
+  showMemory?: boolean;
+  showDisk?: boolean;
+  warningThreshold?: number; // Percentage (default: 70)
+  criticalThreshold?: number; // Percentage (default: 90)
+}
+
+export interface SystemProcessesWidgetConfig {
+  sortBy?: 'cpu' | 'mem';
+  processCount?: number; // Number of processes to show (default: 10)
+}
+
+export interface SystemNetworkWidgetConfig {
+  interface?: string; // Specific network interface or 'all'
+  units?: 'B/s' | 'KB/s' | 'MB/s'; // Display units (default: 'MB/s')
+}
+
+export interface PlexWidgetConfig {
+  serverUrl: string; // Plex server URL (e.g., http://192.168.1.100:32400)
+  token: string; // Plex authentication token
+  showNowPlaying?: boolean; // Show currently playing sessions (default: true)
+  showRecent?: boolean; // Show recently added media (default: true)
+  recentLimit?: number; // Number of recent items to show (default: 5)
+  refreshInterval?: number; // Refresh interval in seconds (default: 10)
+}
+
+export interface PlexSession {
+  sessionKey: string;
+  user: string;
+  title: string;
+  type: 'movie' | 'episode' | 'track';
+  grandparentTitle?: string; // Show name for episodes
+  parentTitle?: string; // Season for episodes, album for tracks
+  year?: number;
+  thumb?: string;
+  state: 'playing' | 'paused' | 'buffering';
+  progress: number; // 0-100
+  transcoding: boolean;
+  videoDecision?: string;
+  player: string;
+  platform?: string;
+}
+
+export interface PlexRecentItem {
+  key: string;
+  title: string;
+  type: 'movie' | 'episode' | 'track' | 'album';
+  grandparentTitle?: string;
+  parentTitle?: string;
+  year?: number;
+  thumb?: string;
+  addedAt: number;
+}
+
+export interface PlexLibraryStats {
+  movies: number;
+  shows: number;
+  episodes: number;
+  music: number;
+}
+
+export interface PlexData {
+  sessions: PlexSession[];
+  recent: PlexRecentItem[];
+  info: {
+    name: string;
+    version: string;
+    platform: string;
+    transcoderActiveVideoSessions: number;
+  };
+  stats: PlexLibraryStats;
+}
+
+export interface SystemMetrics {
+  cpu: {
+    usage: number;
+    load: number[];
+    cores: number;
+    speed: number;
+  };
+  memory: {
+    used: number;
+    total: number;
+    percentage: number;
+    available: number;
+  };
+  disk: {
+    used: number;
+    total: number;
+    percentage: number;
+    available: number;
+  };
+  timestamp: Date;
+}
+
+export interface ProcessInfo {
+  pid: number;
+  name: string;
+  cpu: number;
+  mem: number;
+  command: string;
+}
+
+export interface NetworkStats {
+  rx: number; // bytes received per second
+  tx: number; // bytes transmitted per second
+  interfaces: Array<{
+    name: string;
+    speed: number;
+    operstate: string;
+    rx_sec: number;
+    tx_sec: number;
+  }>;
+}
+
+export interface SystemInfo {
+  os: string;
+  platform: string;
+  hostname: string;
+  uptime: number;
+  arch: string;
+  isDocker?: boolean;
 }
 
 export interface Theme {
   id: string;
   name: string;
+  author?: string;
+  variant?: 'dark' | 'light';
+  isCustom?: boolean;
   baseScheme: 'base16' | 'base24';
   tokens: Record<string, string>;
   styleMode: StyleMode;

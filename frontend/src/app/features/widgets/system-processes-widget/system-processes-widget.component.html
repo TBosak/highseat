@@ -1,0 +1,44 @@
+<div class="system-processes-widget">
+  @if (connectionState() === 'connecting') {
+    <div class="status-message connecting">
+      <div class="spinner"></div>
+      <span>Connecting to system monitor...</span>
+    </div>
+  } @else if (connectionState() === 'disconnected' || connectionState() === 'error') {
+    <div class="status-message error">
+      <span>Connection lost</span>
+      <button class="reconnect-btn" (click)="reconnect()">Reconnect</button>
+    </div>
+  } @else if (processes().length > 0) {
+    <div class="processes-container">
+      <div class="processes-header">
+        <span class="header-title">Top Processes ({{ config.sortBy === 'cpu' ? 'CPU' : 'Memory' }})</span>
+        <span class="process-count">{{ processes().length }}</span>
+      </div>
+
+      <div class="processes-table">
+        <div class="table-header">
+          <span class="col-pid">PID</span>
+          <span class="col-name">Name</span>
+          <span class="col-cpu">CPU%</span>
+          <span class="col-mem">MEM%</span>
+        </div>
+
+        <div class="table-body">
+          @for (process of processes(); track process.pid) {
+            <div class="table-row" [title]="process.command">
+              <span class="col-pid">{{ process.pid }}</span>
+              <span class="col-name">{{ truncateCommand(process.name, 20) }}</span>
+              <span class="col-cpu" [class.high]="process.cpu > 50">{{ process.cpu.toFixed(1) }}%</span>
+              <span class="col-mem" [class.high]="process.mem > 50">{{ process.mem.toFixed(1) }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="status-message">
+      <span>No process data available</span>
+    </div>
+  }
+</div>

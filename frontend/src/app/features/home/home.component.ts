@@ -1,31 +1,41 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCog, faPlus, faSpinner, faPalette, faRightFromBracket, faBars, faPencil, faImage } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faPlus, faSpinner, faPalette, faRightFromBracket, faBars, faPencil, faImage, faNetworkWired } from '@fortawesome/free-solid-svg-icons';
 import { BoardService } from '../../core/services/board.service';
 import { AuthService } from '../../core/services/auth.service';
+import { CardService } from '../../core/services/card.service';
 import { DesignModeService } from '../../core/services/design-mode.service';
 import { AddCardModalService } from '../../core/services/add-card-modal.service';
 import { BackgroundSettingsModalService } from '../../core/services/background-settings-modal.service';
+import { ServiceDiscoveryModalService } from '../../core/services/service-discovery-modal.service';
+import { IconCatalogService } from '../../core/services/icon-catalog.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
 import { BoardViewComponent } from '../dashboard/board-view/board-view.component';
+import { ServiceDiscoveryModalComponent, type DiscoveredService } from '../dashboard/components/service-discovery-modal/service-discovery-modal.component';
 import type { Board } from '../../core/models';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule, HasPermissionDirective, BoardViewComponent],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, HasPermissionDirective, BoardViewComponent, ServiceDiscoveryModalComponent],
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit {
   private boardService = inject(BoardService);
   private authService = inject(AuthService);
+  private cardService = inject(CardService);
+  private iconCatalog = inject(IconCatalogService);
+  private themeService = inject(ThemeService);
   private router = inject(Router);
   designMode = inject(DesignModeService);
   addCardModal = inject(AddCardModalService);
   backgroundModal = inject(BackgroundSettingsModalService);
+  serviceDiscoveryModal = inject(ServiceDiscoveryModalService);
 
   // Icons
   faCog = faCog;
@@ -36,12 +46,14 @@ export class HomeComponent implements OnInit {
   faBars = faBars;
   faPencil = faPencil;
   faImage = faImage;
+  faNetworkWired = faNetworkWired;
 
   boards = signal<Board[]>([]);
   selectedBoardSlug = signal<string | null>(null);
   loading = signal(true);
   user = this.authService.user;
   showMenu = signal(false);
+  showAddMenu = signal(false);
 
   selectedBoard = computed(() => {
     const slug = this.selectedBoardSlug();
@@ -118,5 +130,129 @@ export class HomeComponent implements OnInit {
   openBackgroundSettings(): void {
     this.closeMenu();
     this.backgroundModal.open();
+  }
+
+  toggleAddMenu(): void {
+    this.showAddMenu.update(v => !v);
+  }
+
+  closeAddMenu(): void {
+    this.showAddMenu.set(false);
+  }
+
+  openAddCardFromMenu(): void {
+    this.closeAddMenu();
+    this.addCardModal.open();
+  }
+
+  openServiceDiscovery(): void {
+    this.closeAddMenu();
+    this.serviceDiscoveryModal.open();
+  }
+
+  handleServicesDiscovered(services: DiscoveredService[]): void {
+    const board = this.selectedBoard();
+    if (!board) {
+      alert('No board selected');
+      this.serviceDiscoveryModal.close();
+      return;
+    }
+
+    // Fetch the full board data with tabs and zones
+    this.boardService.getBoard(board.id).subscribe({
+      next: (fullBoard) => {
+        if (!fullBoard.tabs || fullBoard.tabs.length === 0) {
+          alert('No tabs available to add cards to');
+          this.serviceDiscoveryModal.close();
+          return;
+        }
+
+        // Get the first zone of the first tab
+        const firstTab = fullBoard.tabs[0];
+        if (!firstTab.zones || firstTab.zones.length === 0) {
+          alert('No zones available to add cards to');
+          this.serviceDiscoveryModal.close();
+          return;
+        }
+
+        const zoneId = firstTab.zones[0].id;
+
+        // Load icon catalog first to ensure icons are available
+        this.iconCatalog.getAllIcons().subscribe({
+          next: () => {
+            // Create cards for all selected services
+            let completed = 0;
+            let failed = 0;
+
+            services.forEach((service, index) => {
+              const cardData: any = {
+                zoneId,
+                title: service.suggestedTitle,
+                subtitle: service.containerName || undefined,
+                iconSource: service.iconId ? 'catalog' : 'custom',
+                iconCatalogId: service.iconId,
+                layoutX: 0,
+                layoutY: index * 2,
+                layoutW: 2,
+                layoutH: 2
+              };
+
+              // Set icon URL if using catalog icon
+              if (service.iconId) {
+                const themeVariant = this.themeService.themeVariant();
+                const iconUrl = this.iconCatalog.getIconForThemeVariant(service.iconId, themeVariant);
+                if (iconUrl) {
+                  cardData.iconCustomUrl = iconUrl;
+                } else {
+                  console.warn(`No icon URL found for iconId: ${service.iconId}`);
+                }
+              } else {
+                console.warn(`Service has no iconId: ${service.name}`);
+              }
+
+              // Store URL in meta field
+              if (service.suggestedUrl) {
+                cardData.meta = { url: service.suggestedUrl };
+              }
+
+              this.cardService.createCard(cardData).subscribe({
+                next: () => {
+                  completed++;
+                  if (completed + failed === services.length) {
+                    this.finishBulkAdd(completed, failed);
+                  }
+                },
+                error: (err) => {
+                  console.error('Failed to create card:', err);
+                  failed++;
+                  if (completed + failed === services.length) {
+                    this.finishBulkAdd(completed, failed);
+                  }
+                }
+              });
+            });
+          },
+          error: (err) => {
+            console.error('Failed to load icon catalog:', err);
+            alert('Failed to load icon catalog');
+            this.serviceDiscoveryModal.close();
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Failed to load board details:', err);
+        alert('Failed to load board information');
+        this.serviceDiscoveryModal.close();
+      }
+    });
+  }
+
+  private finishBulkAdd(completed: number, failed: number): void {
+    this.serviceDiscoveryModal.close();
+    this.loadBoards(); // Reload to show new cards
+
+    if (failed > 0) {
+      alert(`Added ${completed} card(s). ${failed} failed.`);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, AfterViewInit, OnDestroy, Input, SimpleChanges, ElementRef, ViewChild, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, OnChanges, AfterViewInit, OnDestroy, Input, SimpleChanges, ElementRef, ViewChild, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,14 +16,15 @@ import { HasPermissionDirective } from '../../../shared/directives/has-permissio
 import { DashCardComponent } from '../components/dash-card/dash-card.component';
 import { AddCardModalComponent } from '../components/add-card-modal/add-card-modal.component';
 import { BackgroundSettingsModalComponent } from '../components/background-settings-modal/background-settings-modal.component';
-import type { Board, Tab, Card } from '../../../core/models';
+import type { Board, Tab, Card, CardWidget } from '../../../core/models';
 
 @Component({
   selector: 'app-board-view',
   standalone: true,
   imports: [CommonModule, FormsModule, HasPermissionDirective, DashCardComponent, AddCardModalComponent, BackgroundSettingsModalComponent, FontAwesomeModule],
   templateUrl: './board-view.component.html',
-  styleUrls: ['./board-view.component.scss']
+  styleUrls: ['./board-view.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   private route = inject(ActivatedRoute);
@@ -57,6 +58,7 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
   currentTab = signal<Tab | null>(null);
   cards = signal<Card[]>([]);
   loading = signal(true);
+  gridInitialized = signal(false);
   newCardTitle = signal('');
   newCardContent = signal('');
 
@@ -112,12 +114,12 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
   }
 
   ngAfterViewInit(): void {
-    // Initialize grid after view is ready
-    setTimeout(() => {
+    // Initialize grid after view is ready using RAF for better performance
+    requestAnimationFrame(() => {
       if (this.gridContainer && !this.grid) {
         this.initGrid();
       }
-    }, 100);
+    });
   }
 
   ngOnDestroy(): void {
@@ -129,8 +131,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       console.error('Cannot init GridStack: container not found');
       return;
     }
-
-    console.log('Initializing GridStack...');
 
     this.grid = GridStack.init({
       cellHeight: 100,
@@ -149,7 +149,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
     // Load existing widgets from DOM
     const existingItems = this.gridContainer.nativeElement.querySelectorAll('.grid-stack-item');
-    console.log('Found existing items:', existingItems.length);
 
     if (existingItems.length > 0) {
       const widgets = Array.from(existingItems).map((el: Element) => {
@@ -159,8 +158,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
         const y = parseInt(htmlEl.getAttribute('gs-y') || '0');
         const w = parseInt(htmlEl.getAttribute('gs-w') || '2');
         const h = parseInt(htmlEl.getAttribute('gs-h') || '1');
-
-        console.log(`Loading widget ${cardId}:`, { x, y, w, h });
 
         return {
           x,
@@ -174,41 +171,22 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       });
 
       this.grid.load(widgets);
-      console.log('===== WIDGETS LOADED INTO GRIDSTACK =====');
 
-      // Verify positions after loading
-      setTimeout(() => {
+      // Verify positions after loading using RAF for immediate verification
+      requestAnimationFrame(() => {
         if (!this.gridContainer) return;
 
-        const items = this.gridContainer.nativeElement.querySelectorAll('.grid-stack-item');
-        items.forEach((item: Element) => {
-          const htmlEl = item as HTMLElement;
-          const node = (htmlEl as any).gridstackNode;
-          const cardId = htmlEl.getAttribute('data-card-id');
-          if (node) {
-            console.log(`GridStack position for ${cardId}:`, {
-              x: node.x,
-              y: node.y,
-              w: node.w,
-              h: node.h
-            });
-          }
-        });
-      }, 100);
+        // Grid is now initialized and positioned
+        this.gridInitialized.set(true);
+      });
+    } else {
+      // No existing items, grid is ready immediately
+      this.gridInitialized.set(true);
     }
 
     // Listen for any position changes
     this.grid.on('change', (event: Event, items: any[]) => {
-      console.log('===== GRID CHANGE EVENT =====');
-      items?.forEach((item: any) => {
-        console.log('Position changed:', {
-          id: item.el?.getAttribute('data-card-id'),
-          x: item.x,
-          y: item.y,
-          w: item.w,
-          h: item.h
-        });
-      });
+      // Position changes tracked - logs stripped in production build
     });
 
     // Listen to drag stop events to save positions
@@ -224,11 +202,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       const y = node.y ?? 0;
       const w = node.w ?? 2;
       const h = node.h ?? 1;
-
-      console.log('=== DRAG STOPPED ===');
-      console.log('Card ID:', cardId);
-      console.log('New position:', { x, y, w, h });
-      console.log('Saving to backend...');
 
       // Update local card data immediately
       this.cards.update(cards =>
@@ -246,7 +219,7 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
         layoutH: h
       }).subscribe({
         next: () => {
-          console.log('Card position saved');
+          // Position saved successfully
         },
         error: (err: any) => {
           console.error('Failed to save position:', err);
@@ -254,12 +227,9 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       });
     });
 
-    // Listen to resize start for debugging
+    // Listen to resize start
     this.grid.on('resizestart', (event: Event, element: GridStackWidget) => {
-      const htmlElement = element as HTMLElement;
-      const cardId = htmlElement.getAttribute('data-card-id');
-      console.log('===== RESIZE STARTED =====');
-      console.log('Card ID:', cardId);
+      // Resize tracking - logs stripped in production build
     });
 
     // Listen to resize stop events to save sizes
@@ -275,8 +245,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       const y = node.y ?? 0;
       const w = node.w ?? 2;
       const h = node.h ?? 1;
-
-      console.log('Card resized:', { cardId, x, y, w, h });
 
       // Update local card data immediately
       this.cards.update(cards =>
@@ -294,7 +262,7 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
         layoutH: h
       }).subscribe({
         next: () => {
-          console.log('Card size saved');
+          // Size saved successfully
         },
         error: (err: any) => {
           console.error('Failed to save size:', err);
@@ -328,15 +296,13 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
   }
 
   private refreshGrid(): void {
-    setTimeout(() => {
+    // Use RAF for smooth grid refresh without arbitrary delays
+    requestAnimationFrame(() => {
       if (!this.grid) {
         // Grid doesn't exist, initialize it
-        console.log('Grid not initialized, initializing now...');
         this.initGrid();
         return;
       }
-
-      console.log('Refreshing GridStack...');
 
       // Use batchUpdate for performance when adding multiple widgets
       this.grid.batchUpdate();
@@ -350,7 +316,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
         if (!isManaged) {
           const cardId = htmlEl.getAttribute('data-card-id');
-          console.log('Adding new widget for:', cardId);
 
           // Get widget options from attributes
           const x = parseInt(htmlEl.getAttribute('gs-x') || '0');
@@ -360,8 +325,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
           // Use makeWidget (converts existing DOM element to widget)
           this.grid!.makeWidget(htmlEl);
-
-          console.log('Widget added with position:', { cardId, x, y, w, h });
         }
       });
 
@@ -371,30 +334,22 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       // Update draggable state based on design mode
       this.updateDraggableState();
 
-      console.log('GridStack refresh complete');
-    }, 200);
+      // Mark grid as initialized after widgets are added
+      this.gridInitialized.set(true);
+    });
   }
 
   private updateDraggableState(): void {
     if (!this.grid) {
-      console.log('Cannot update draggable state: grid not initialized');
       return;
     }
 
     const canDrag = this.designMode.isDesignMode();
 
-    console.log('Updating draggable state:', {
-      canDrag,
-      designMode: this.designMode.isDesignMode(),
-      cardCount: this.cards().length
-    });
-
     // Use GridStack's recommended API methods
     // Enable/disable at grid level (affects all widgets unless overridden)
     this.grid.enableMove(canDrag);
     this.grid.enableResize(canDrag);
-
-    console.log(`Grid-level controls set: move=${canDrag}, resize=${canDrag}`);
   }
 
 
@@ -449,6 +404,9 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
   loadCards(tabId: string): void {
     console.log('Loading cards for tab:', tabId);
 
+    // Reset grid initialized state
+    this.gridInitialized.set(false);
+
     // Destroy existing grid before loading new cards
     if (this.grid) {
       console.log('Destroying existing grid before loading new cards');
@@ -457,28 +415,13 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
     this.tabService.getTab(tabId).subscribe({
       next: (tab) => {
-        console.log('Tab data received:', tab);
-        console.log('Tab zones:', tab.zones);
-
         // Update currentTab with full data including zones
         this.currentTab.set(tab);
 
         // Flatten all cards from all zones
         const allCards = tab.zones?.flatMap(zone => {
-          console.log('Zone:', zone.id, 'Cards:', zone.cards?.length || 0);
           return zone.cards || [];
         }) || [];
-
-        console.log('===== CARDS LOADED FROM BACKEND =====');
-        console.log('Total cards loaded:', allCards.length);
-        allCards.forEach(c => {
-          console.log(`Card "${c.title}" (${c.id}):`, {
-            layoutX: c.layoutX,
-            layoutY: c.layoutY,
-            layoutW: c.layoutW,
-            layoutH: c.layoutH
-          });
-        });
 
         // Sort cards by layoutY to maintain order
         allCards.sort((a, b) => (a.layoutY || 0) - (b.layoutY || 0));
@@ -501,7 +444,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
   toggleDesignMode(): void {
     this.designMode.toggle();
-    console.log('Design mode toggled:', this.designMode.isDesignMode());
     this.updateDraggableState();
   }
 
@@ -517,9 +459,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
 
     // Find the first zone in the current tab, or use the tab ID as zone
     const zoneId = tab.zones?.[0]?.id || tab.id;
-
-    console.log('Creating card with zoneId:', zoneId);
-    console.log('Tab zones:', tab.zones);
 
     // Find next available position for new card
     // Use grid positions (not pixels): x is column (0-11), y is row
@@ -540,11 +479,8 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       layoutLocked: false
     };
 
-    console.log('Creating card with data:', cardData);
-
     this.cardService.createCard(cardData).subscribe({
       next: (card) => {
-        console.log('Card created successfully:', card);
         this.cards.update(cards => [...cards, card]);
         this.addCardModal.close();
         this.newCardTitle.set('');
@@ -565,7 +501,34 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
     iconSource: 'catalog' | 'custom';
     iconCatalogId?: string;
     iconCustomUrl?: string;
+    widgets?: CardWidget[];
+    layoutW?: number;
+    layoutH?: number;
+    layoutMinW?: number;
+    layoutMinH?: number;
+    layoutMaxW?: number;
+    layoutMaxH?: number;
   }): void {
+    // Check if we're in edit mode by checking if the modal has an editing card
+    const editingCard = this.addCardModal.editingCard();
+    if (editingCard) {
+      // Card was updated in the modal, fetch the updated card from the backend
+      this.cardService.getCard(editingCard.id).subscribe({
+        next: (updatedCard) => {
+          // Update the card in the array
+          this.cards.update(cards =>
+            cards.map(c => c.id === updatedCard.id ? updatedCard : c)
+          );
+          // Refresh the grid to apply changes
+          this.refreshGrid();
+        },
+        error: (err) => {
+          console.error('Failed to fetch updated card:', err);
+        }
+      });
+      return;
+    }
+
     const tab = this.currentTab();
     if (!tab) {
       return;
@@ -589,18 +552,21 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       iconCustomUrl: cardData.iconCustomUrl,
       layoutX: 0,
       layoutY: nextY,
-      layoutW: 3,
-      layoutH: 2,
+      layoutW: cardData.layoutW ?? 3,
+      layoutH: cardData.layoutH ?? 2,
+      layoutMinW: cardData.layoutMinW,
+      layoutMinH: cardData.layoutMinH,
+      layoutMaxW: cardData.layoutMaxW,
+      layoutMaxH: cardData.layoutMaxH,
       layoutLocked: false,
       // Store URL in meta for now (can be used for click handling later)
-      meta: cardData.url ? { url: cardData.url } : undefined
+      meta: cardData.url ? { url: cardData.url } : undefined,
+      // Include widgets if present
+      widgets: cardData.widgets
     };
-
-    console.log('Creating card with icon data:', newCard);
 
     this.cardService.createCard(newCard).subscribe({
       next: (card) => {
-        console.log('Card created successfully:', card);
         this.cards.update(cards => [...cards, card]);
         this.addCardModal.close();
         this.refreshGrid();
@@ -613,8 +579,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
   }
 
   onCardDeleted(cardId: string): void {
-    console.log('Deleting card:', cardId);
-
     // Remove from cards array first
     this.cards.update(cards => cards.filter(c => c.id !== cardId));
 
@@ -623,14 +587,11 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
       const element = this.gridContainer.nativeElement.querySelector(`[data-card-id="${cardId}"]`);
       if (element) {
         this.grid.removeWidget(element as HTMLElement);
-        console.log('Card removed from GridStack');
       }
     }
   }
 
   handleBackgroundSettingsSaved(event: { tabIds: string[], settings: Partial<Tab> }): void {
-    console.log('Saving background settings:', event);
-
     const { tabIds, settings } = event;
     const currentTabId = this.currentTab()?.id;
     let updatesCompleted = 0;
@@ -639,8 +600,6 @@ export class BoardViewComponent implements OnInit, OnChanges, AfterViewInit, OnD
     tabIds.forEach(tabId => {
       this.tabService.updateTab(tabId, settings).subscribe({
         next: (updatedTab) => {
-          console.log('Tab background updated:', updatedTab);
-
           // Update the tabs array
           this.tabs.update(tabs =>
             tabs.map(t => t.id === tabId ? { ...t, ...settings } : t)

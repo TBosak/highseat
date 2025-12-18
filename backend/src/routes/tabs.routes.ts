@@ -62,7 +62,40 @@ tabsRouter.get('/:tabId', requirePermission('board:view'), async (c) => {
     orderBy: (zones, { asc }) => [asc(zones.order)]
   });
 
-  return c.json({ ...tab, zones: tabZones });
+  // Parse JSON fields in cards
+  const parsedZones = tabZones.map(zone => ({
+    ...zone,
+    cards: zone.cards.map(card => {
+      let parsedMeta = undefined;
+      let parsedWidgets = undefined;
+
+      if (card.meta && typeof card.meta === 'string') {
+        try {
+          parsedMeta = JSON.parse(card.meta);
+        } catch (e) {
+          console.error('Failed to parse meta for card:', card.id, e);
+        }
+      }
+
+      if (card.widgets && typeof card.widgets === 'string') {
+        console.log('[GET /tabs/:tabId] Parsing widgets for card:', card.id);
+        try {
+          parsedWidgets = JSON.parse(card.widgets);
+          console.log('[GET /tabs/:tabId] Successfully parsed widgets:', parsedWidgets);
+        } catch (e) {
+          console.error('[GET /tabs/:tabId] Failed to parse widgets for card:', card.id, e);
+        }
+      }
+
+      return {
+        ...card,
+        meta: parsedMeta,
+        widgets: parsedWidgets
+      };
+    })
+  }));
+
+  return c.json({ ...tab, zones: parsedZones });
 });
 
 // Create tab

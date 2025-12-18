@@ -29,7 +29,9 @@
                 "glob": "**/*",
                 "input": "public",
                 "ignore": [
-                  "app-icons/meta/**"
+                  "app-icons/meta/**",
+                  "base16/**",
+                  "base24/**"
                 ]
               }
             ],
@@ -39,7 +41,13 @@
           },
           "configurations": {
             "production": {
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": true
+              },
+              "budgets": []
             },
             "development": {
               "optimization": false,

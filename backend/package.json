@@ -5,24 +5,31 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts --outdir=dist --target=bun",
-    "start": "bun dist/index.js",
+    "start": "bun src/index.ts",
+    "start:production": "bun src/db/init.ts && bun src/index.ts",
+    "db:init": "bun src/db/init.ts",
     "db:migrate": "bun src/db/migrate.ts",
     "db:seed": "bun src/db/seed.ts"
   },
   "dependencies": {
-    "hono": "^4.0.0",
     "@hono/node-server": "^1.12.0",
-    "drizzle-orm": "^0.36.0",
-    "jsonwebtoken": "^9.0.2",
-    "bcrypt": "^5.1.1",
-    "zod": "^3.23.0",
+    "@hono/zod-validator": "^0.2.2",
     "@paralleldrive/cuid2": "^2.2.2",
-    "@hono/zod-validator": "^0.2.2"
+    "bcrypt": "^5.1.1",
+    "drizzle-orm": "^0.36.0",
+    "hono": "^4.0.0",
+    "hono-rate-limiter": "^0.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "systeminformation": "^5.27.14",
+    "ws": "^8.18.3",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@libsql/client": "^0.14.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/bcrypt": "^5.0.2",
+    "@types/ws": "^8.18.1",
     "drizzle-kit": "^0.28.0"
   }
 }

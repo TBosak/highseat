@@ -16,6 +16,10 @@ const updateThemePreferenceSchema = z.object({
   preferredStyleMode: z.string().optional()
 });
 
+const updateUserPreferencesSchema = z.object({
+  hideLogo: z.boolean().optional()
+});
+
 const createUserSchema = z.object({
   username: z.string().min(3).max(30),
   password: z.string().min(8),
@@ -50,6 +54,40 @@ users.patch('/me/theme-preference', authMiddleware, zValidator('json', updateThe
       roles: JSON.parse(updatedUser.roles),
       preferredThemeId: updatedUser.preferredThemeId,
       preferredStyleMode: updatedUser.preferredStyleMode
+    });
+  } catch (error) {
+    return c.json({ error: (error as Error).message }, 400);
+  }
+});
+
+// Update user's preferences
+users.patch('/me/preferences', authMiddleware, zValidator('json', updateUserPreferencesSchema), async (c) => {
+  try {
+    const user = c.get('user') as JWTPayload;
+    const { hideLogo } = c.req.valid('json');
+
+    const updateData: any = { updatedAt: new Date() };
+    if (hideLogo !== undefined) updateData.hideLogo = hideLogo;
+
+    const [updatedUser] = await db
+      .update(usersTable)
+      .set(updateData)
+      .where(eq(usersTable.id, user.userId))
+      .returning();
+
+    if (!updatedUser) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    // Return user data with parsed roles
+    return c.json({
+      id: updatedUser.id,
+      username: updatedUser.username,
+      displayName: updatedUser.displayName,
+      roles: JSON.parse(updatedUser.roles),
+      preferredThemeId: updatedUser.preferredThemeId,
+      preferredStyleMode: updatedUser.preferredStyleMode,
+      hideLogo: updatedUser.hideLogo
     });
   } catch (error) {
     return c.json({ error: (error as Error).message }, 400);
@@ -140,14 +178,35 @@ users.patch('/:userId', authMiddleware, requirePermission('user:manage'), zValid
 users.delete('/:userId', authMiddleware, requirePermission('user:manage'), async (c) => {
   const userId = c.req.param('userId');
 
+  // Get the user being deleted
+  const [userToDelete] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
+  if (!userToDelete) {
+    return c.json({ error: 'User not found' }, 404);
+  }
+
+  // Check if this user has admin role
+  const roles = JSON.parse(userToDelete.roles);
+  if (roles.includes('admin')) {
+    // Count total admin users
+    const allUsers = await db.select().from(usersTable);
+    const adminCount = allUsers.filter(u => {
+      const userRoles = JSON.parse(u.roles);
+      return userRoles.includes('admin');
+    }).length;
+
+    // Prevent deletion if this is the last admin
+    if (adminCount <= 1) {
+      return c.json({
+        error: 'Cannot delete the last admin user. Create another admin first.'
+      }, 400);
+    }
+  }
+
   const result = await db
     .delete(usersTable)
     .where(eq(usersTable.id, userId))
     .returning();
-
-  if (result.length === 0) {
-    return c.json({ error: 'User not found' }, 404);
-  }
 
   return c.json({ message: 'User deleted successfully' });
 });

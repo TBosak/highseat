@@ -1,0 +1,78 @@
+<div class="system-metrics-widget">
+  @if (connectionState() === 'connecting') {
+    <div class="status-message connecting">
+      <div class="spinner"></div>
+      <span>Connecting to system monitor...</span>
+    </div>
+  } @else if (connectionState() === 'disconnected' || connectionState() === 'error') {
+    <div class="status-message error">
+      <span>Connection lost</span>
+      <button class="reconnect-btn" (click)="reconnect()">Reconnect</button>
+    </div>
+  } @else if (metrics()) {
+    <div class="metrics-container">
+      @if (config.showCPU !== false) {
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">CPU</span>
+            <span class="metric-value" [class]="getStatusColor(metrics()!.cpu.usage)">
+              {{ metrics()!.cpu.usage.toFixed(1) }}%
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [class]="getStatusColor(metrics()!.cpu.usage)"
+              [style.width.%]="metrics()!.cpu.usage"
+            ></div>
+          </div>
+          <div class="metric-details">
+            <span>{{ metrics()!.cpu.cores }} cores @ {{ metrics()!.cpu.speed }} GHz</span>
+          </div>
+        </div>
+      }
+
+      @if (config.showMemory !== false) {
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Memory</span>
+            <span class="metric-value" [class]="getStatusColor(metrics()!.memory.percentage)">
+              {{ metrics()!.memory.percentage.toFixed(1) }}%
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [class]="getStatusColor(metrics()!.memory.percentage)"
+              [style.width.%]="metrics()!.memory.percentage"
+            ></div>
+          </div>
+          <div class="metric-details">
+            <span>{{ formatBytes(metrics()!.memory.used) }} / {{ formatBytes(metrics()!.memory.total) }}</span>
+          </div>
+        </div>
+      }
+
+      @if (config.showDisk !== false) {
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Disk</span>
+            <span class="metric-value" [class]="getStatusColor(metrics()!.disk.percentage)">
+              {{ metrics()!.disk.percentage.toFixed(1) }}%
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [class]="getStatusColor(metrics()!.disk.percentage)"
+              [style.width.%]="metrics()!.disk.percentage"
+            ></div>
+          </div>
+          <div class="metric-details">
+            <span>{{ formatBytes(metrics()!.disk.used) }} / {{ formatBytes(metrics()!.disk.total) }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

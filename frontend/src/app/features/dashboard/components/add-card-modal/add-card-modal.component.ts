@@ -1,9 +1,14 @@
-import { Component, OnInit, Output, EventEmitter, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faTimes, faLink, faImage } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faTimes, faLink, faImage, faStickyNote, faLightbulb, faMicrochip, faListCheck, faNetworkWired, faFilm } from '@fortawesome/free-solid-svg-icons';
 import { IconCatalogService, IconCatalogEntry, IconCategory } from '../../../../core/services/icon-catalog.service';
+import { ThemeService } from '../../../../core/services/theme.service';
+import { AddCardModalService } from '../../../../core/services/add-card-modal.service';
+import { CardService } from '../../../../core/services/card.service';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-add-card-modal',
@@ -12,8 +17,11 @@ import { IconCatalogService, IconCatalogEntry, IconCategory } from '../../../../
   templateUrl: './add-card-modal.component.html',
   styleUrls: ['./add-card-modal.component.scss']
 })
-export class AddCardModalComponent implements OnInit {
+export class AddCardModalComponent implements OnInit, OnDestroy {
   private iconCatalog = inject(IconCatalogService);
+  private themeService = inject(ThemeService);
+  private addCardModal = inject(AddCardModalService);
+  private cardService = inject(CardService);
 
   @Output() cardCreated = new EventEmitter<{
     title: string;
@@ -31,11 +39,25 @@ export class AddCardModalComponent implements OnInit {
   faTimes = faTimes;
   faLink = faLink;
   faImage = faImage;
+  faStickyNote = faStickyNote;
+  faLightbulb = faLightbulb;
+  faMicrochip = faMicrochip;
+  faListCheck = faListCheck;
+  faNetworkWired = faNetworkWired;
+  faFilm = faFilm;
+
+  // Card type
+  cardType = signal<'regular' | 'widget'>('regular');
+  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex'>('note');
 
   // Form fields
   title = signal('');
   subtitle = signal('');
   url = signal('');
+
+  // Plex widget fields
+  plexServerUrl = signal('');
+  plexToken = signal('');
 
   // Icon selection
   iconSource = signal<'catalog' | 'custom'>('catalog');
@@ -47,6 +69,46 @@ export class AddCardModalComponent implements OnInit {
   categories = signal<IconCategory[]>([]);
   selectedCategory = signal<string | null>(null);
   filteredIcons = signal<IconCatalogEntry[]>([]);
+
+  // Search debouncing
+  private searchSubject = new Subject<string>();
+
+  // Edit mode
+  editingCard = this.addCardModal.editingCard;
+  isEditMode = computed(() => this.editingCard() !== null);
+  modalTitle = computed(() => this.isEditMode() ? 'Edit Card' : 'Add New Card');
+
+  constructor() {
+    // Populate form fields when editingCard changes
+    effect(() => {
+      const card = this.editingCard();
+      if (card) {
+        this.title.set(card.title);
+        this.subtitle.set(card.subtitle || '');
+
+        // Extract URL from meta
+        try {
+          const meta = typeof card.meta === 'string' ? JSON.parse(card.meta) : card.meta;
+          this.url.set(meta?.url || '');
+        } catch {
+          this.url.set('');
+        }
+
+        // Set icon source and selection
+        if (card.iconSource === 'catalog' && card.iconCatalogId) {
+          this.iconSource.set('catalog');
+          this.selectedIconId.set(card.iconCatalogId);
+        } else if (card.iconCustomUrl) {
+          this.iconSource.set('custom');
+          this.customIconUrl.set(card.iconCustomUrl);
+          this.selectedIconId.set(null);
+        }
+      } else {
+        // Reset form for create mode
+        this.resetForm();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.iconCatalog.getCategories().subscribe({
@@ -60,6 +122,18 @@ export class AddCardModalComponent implements OnInit {
         }
       }
     });
+
+    // Set up debounced search
+    this.searchSubject.pipe(
+      debounceTime(300), // Wait 300ms after user stops typing
+      distinctUntilChanged() // Only emit if value changed
+    ).subscribe(query => {
+      this.performSearch(query);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
   }
 
   selectCategory(categoryId: string): void {
@@ -73,7 +147,10 @@ export class AddCardModalComponent implements OnInit {
 
   searchIcons(query: string): void {
     this.iconSearchQuery.set(query);
+    this.searchSubject.next(query);
+  }
 
+  private performSearch(query: string): void {
     if (!query.trim()) {
       // Reset to selected category
       const category = this.categories().find(c => c.id === this.selectedCategory());
@@ -105,30 +182,152 @@ export class AddCardModalComponent implements OnInit {
     return id ? this.iconCatalog.getIconById(id) : undefined;
   }
 
+  getIconUrl(icon: IconCatalogEntry): string {
+    const themeVariant = this.themeService.themeVariant();
+    return this.iconCatalog.getIconForThemeVariant(icon.id, themeVariant) || icon.iconUrl;
+  }
+
+  resetForm(): void {
+    this.cardType.set('regular');
+    this.widgetType.set('note');
+    this.title.set('');
+    this.subtitle.set('');
+    this.url.set('');
+    this.iconSource.set('catalog');
+    this.selectedIconId.set(null);
+    this.customIconUrl.set('');
+    this.iconSearchQuery.set('');
+  }
+
+  isRegularCard(): boolean {
+    return this.cardType() === 'regular';
+  }
+
+  isWidgetCard(): boolean {
+    return this.cardType() === 'widget';
+  }
+
   handleSubmit(): void {
-    if (!this.title().trim()) {
+    // Only require title for regular cards
+    if (this.isRegularCard() && !this.title().trim()) {
       alert('Please enter a title');
       return;
     }
 
-    const cardData: any = {
-      title: this.title(),
-      subtitle: this.subtitle() || undefined,
-      url: this.url() || undefined,
-      iconSource: this.iconSource()
-    };
+    const cardData: any = {};
 
-    if (this.iconSource() === 'catalog' && this.selectedIconId()) {
-      cardData.iconCatalogId = this.selectedIconId();
-      const icon = this.getSelectedIcon();
-      if (icon) {
-        cardData.iconCustomUrl = icon.iconUrl;
+    // Handle widget cards
+    if (this.isWidgetCard()) {
+      // Set default title and layout based on widget type
+      switch (this.widgetType()) {
+        case 'note':
+          cardData.title = 'Note';
+          cardData.layoutW = 2;
+          cardData.layoutH = 2;
+          cardData.layoutMinW = 2;
+          cardData.layoutMinH = 2;
+          break;
+        case 'system-metrics':
+          cardData.title = 'System Metrics';
+          cardData.layoutW = 3;
+          cardData.layoutH = 5;
+          cardData.layoutMinW = 3;
+          cardData.layoutMinH = 5;
+          cardData.layoutMaxW = 3;
+          cardData.layoutMaxH = 5;
+          break;
+        case 'system-processes':
+          cardData.title = 'System Processes';
+          cardData.layoutW = 3;
+          cardData.layoutH = 6;
+          cardData.layoutMinW = 3;
+          cardData.layoutMinH = 6;
+          cardData.layoutMaxW = 3;
+          cardData.layoutMaxH = 6;
+          break;
+        case 'system-network':
+          cardData.title = 'Network Stats';
+          cardData.layoutW = 3;
+          cardData.layoutH = 4;
+          cardData.layoutMinW = 3;
+          cardData.layoutMinH = 4;
+          cardData.layoutMaxW = 3;
+          cardData.layoutMaxH = 4;
+          break;
+        case 'plex':
+          cardData.title = 'Plex Media Server';
+          cardData.layoutW = 3;
+          cardData.layoutH = 7;
+          cardData.layoutMinW = 3;
+          cardData.layoutMinH = 7;
+          break;
       }
-    } else if (this.iconSource() === 'custom' && this.customIconUrl()) {
-      cardData.iconCustomUrl = this.customIconUrl();
+
+      cardData.iconSource = 'catalog';
+
+      // Build widget config based on type
+      let widgetConfig: any = {};
+      if (this.widgetType() === 'note') {
+        widgetConfig.content = '<p>Start writing your notes here...</p>';
+      } else if (this.widgetType() === 'plex') {
+        widgetConfig.serverUrl = this.plexServerUrl();
+        widgetConfig.token = this.plexToken();
+        widgetConfig.showNowPlaying = true;
+        widgetConfig.showRecent = true;
+        widgetConfig.recentLimit = 10;
+        widgetConfig.refreshInterval = 10;
+      }
+
+      cardData.widgets = [{
+        type: this.widgetType(),
+        config: widgetConfig
+      }];
+
+      // Widget cards don't need icons, URLs, or titles
+    } else {
+      // Regular card - add title and other fields
+      cardData.title = this.title();
+      cardData.subtitle = this.subtitle() || undefined;
+      cardData.iconSource = this.iconSource();
+
+      // Handle meta field (URL)
+      if (this.url()) {
+        cardData.meta = { url: this.url() };
+      }
+
+      if (this.iconSource() === 'catalog' && this.selectedIconId()) {
+        cardData.iconCatalogId = this.selectedIconId();
+        // Use theme-aware icon variant
+        const themeVariant = this.themeService.themeVariant();
+        const iconUrl = this.iconCatalog.getIconForThemeVariant(this.selectedIconId()!, themeVariant);
+        if (iconUrl) {
+          cardData.iconCustomUrl = iconUrl;
+        }
+      } else if (this.iconSource() === 'custom' && this.customIconUrl()) {
+        cardData.iconCustomUrl = this.customIconUrl();
+      }
     }
 
-    this.cardCreated.emit(cardData);
+    if (this.isEditMode()) {
+      // Update existing card
+      const card = this.editingCard();
+      if (card) {
+        this.cardService.updateCard(card.id, cardData).subscribe({
+          next: () => {
+            // Emit event BEFORE closing so editingCard is still set
+            this.cardCreated.emit(cardData);
+            this.addCardModal.close();
+          },
+          error: (err) => {
+            console.error('Failed to update card:', err);
+            alert('Failed to update card. Please try again.');
+          }
+        });
+      }
+    } else {
+      // Create new card - emit data for parent to handle
+      this.cardCreated.emit(cardData);
+    }
   }
 
   handleCancel(): void {

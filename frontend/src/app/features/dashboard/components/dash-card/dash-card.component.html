@@ -1,13 +1,27 @@
-<div [class]="getCardClasses().join(' ')" [ngStyle]="getCardStyles()" (click)="handleCardClick()">
+<div [class]="getCardClasses().join(' ')" [ngStyle]="getCardStyles()" [class.has-widgets]="hasWidgets()" (click)="handleCardClick()">
+  <!-- Save State Indicator (for note widgets) -->
+  @if (hasWidgets() && noteSaveState() !== 'idle') {
+    <div class="save-state-indicator">
+      @if (noteSaveState() === 'editing') {
+        <fa-icon [icon]="faEllipsis" class="editing-icon"></fa-icon>
+      } @else if (noteSaveState() === 'saving') {
+        <fa-icon [icon]="faSpinner" class="saving-icon" [animation]="'spin'"></fa-icon>
+      } @else if (noteSaveState() === 'saved') {
+        <fa-icon [icon]="faCheck" class="saved-icon"></fa-icon>
+      }
+    </div>
+  }
+
   <!-- Design Mode Toolbar -->
   @if (designMode) {
     <div class="card-toolbar" *hasPermission="'board:design'">
       <button
         class="toolbar-btn"
-        (click)="showStyleEditor.set(!showStyleEditor())"
-        title="Style"
+        (click)="editCard()"
+        title="Edit"
+        *hasPermission="'card:edit'"
       >
-        <fa-icon [icon]="faPalette" class="icon-sm"></fa-icon>
+        <fa-icon [icon]="faPencil" class="icon-sm"></fa-icon>
       </button>
 
       <button
@@ -21,40 +35,67 @@
     </div>
   }
 
-  <!-- Style Editor Panel -->
-  @if (showStyleEditor() && designMode) {
-    <div class="style-editor" (click)="$event.stopPropagation()">
-      <div class="style-control">
-        <label>Border Radius</label>
-        <input
-          type="range"
-          min="0"
-          max="32"
-          [value]="borderRadius()"
-          (input)="updateBorderRadius(+$any($event.target).value)"
-        />
-        <span>{{ borderRadius() }}px</span>
-      </div>
-    </div>
-  }
-
   <!-- Card Content -->
   <div class="card-content">
-    @if (card.iconCustomUrl) {
-      <div class="card-icon">
-        <img [src]="card.iconCustomUrl" [alt]="card.title" />
+    <!-- Show icon/header for non-widget cards -->
+    @if (!hasWidgets()) {
+      @if (iconUrl()) {
+        <div class="card-icon">
+          <img
+            [src]="iconUrl()"
+            [alt]="card.title"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      }
+
+      <div class="card-header">
+        <h3 class="card-title">{{ card.title }}</h3>
+        @if (card.subtitle) {
+          <p class="card-subtitle">{{ card.subtitle }}</p>
+        }
       </div>
+
+      @if (card.serviceType) {
+        <div class="card-badge">{{ card.serviceType }}</div>
+      }
     }
 
-    <div class="card-header">
-      <h3 class="card-title">{{ card.title }}</h3>
-      @if (card.subtitle) {
-        <p class="card-subtitle">{{ card.subtitle }}</p>
-      }
-    </div>
-
-    @if (card.serviceType) {
-      <div class="card-badge">{{ card.serviceType }}</div>
+    <!-- Widget rendering -->
+    @if (hasWidgets()) {
+      <div class="card-widgets" (click)="$event.stopPropagation()">
+        @for (widget of card.widgets; track $index) {
+          @if (widget.type === 'note') {
+            <app-note-widget
+              [config]="getNoteWidgetConfig(widget.config)"
+              [editable]="!designMode"
+              (save)="onNoteWidgetSave($event)"
+              (saveStateChange)="onNoteSaveStateChange($event)"
+            ></app-note-widget>
+          }
+          @if (widget.type === 'system-metrics') {
+            <app-system-metrics-widget
+              [config]="getSystemMetricsConfig(widget.config)"
+            ></app-system-metrics-widget>
+          }
+          @if (widget.type === 'system-processes') {
+            <app-system-processes-widget
+              [config]="getSystemProcessesConfig(widget.config)"
+            ></app-system-processes-widget>
+          }
+          @if (widget.type === 'system-network') {
+            <app-system-network-widget
+              [config]="getSystemNetworkConfig(widget.config)"
+            ></app-system-network-widget>
+          }
+          @if (widget.type === 'plex') {
+            <app-plex-widget
+              [config]="getPlexConfig(widget.config)"
+            ></app-plex-widget>
+          }
+        }
+      </div>
     }
   </div>
 </div>

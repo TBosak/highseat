@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import { authMiddleware, getPermissionsFromRoles } from '../middleware/auth.middleware';
+import { authRateLimiter } from '../middleware/rate-limit.middleware';
 import type { AuthEnv, JWTPayload } from '../types';
 
 const auth = new Hono<AuthEnv>();
@@ -23,7 +24,7 @@ const refreshSchema = z.object({
   refreshToken: z.string()
 });
 
-auth.post('/register', zValidator('json', registerSchema), async (c) => {
+auth.post('/register', authRateLimiter, zValidator('json', registerSchema), async (c) => {
   try {
     const { username, password, displayName } = c.req.valid('json');
     const result = await AuthService.register(username, password, displayName);
@@ -33,7 +34,7 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
   }
 });
 
-auth.post('/login', zValidator('json', loginSchema), async (c) => {
+auth.post('/login', authRateLimiter, zValidator('json', loginSchema), async (c) => {
   try {
     const { username, password } = c.req.valid('json');
     const result = await AuthService.login(username, password);
@@ -43,7 +44,7 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
   }
 });
 
-auth.post('/refresh', zValidator('json', refreshSchema), async (c) => {
+auth.post('/refresh', authRateLimiter, zValidator('json', refreshSchema), async (c) => {
   try {
     const { refreshToken } = c.req.valid('json');
     const result = await AuthService.refresh(refreshToken);
@@ -72,6 +73,7 @@ auth.get('/me', authMiddleware, async (c) => {
       roles: JSON.parse(user.roles),
       preferredThemeId: user.preferredThemeId,
       preferredStyleMode: user.preferredStyleMode,
+      hideLogo: user.hideLogo,
       permissions
     }
   });

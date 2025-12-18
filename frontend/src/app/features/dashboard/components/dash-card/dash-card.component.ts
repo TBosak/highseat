@@ -1,40 +1,63 @@
-import { Component, Input, Output, EventEmitter, inject, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPalette, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faTrash, faEllipsis, faSpinner, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { CardService } from '../../../../core/services/card.service';
+import { ThemeService } from '../../../../core/services/theme.service';
+import { IconCatalogService } from '../../../../core/services/icon-catalog.service';
+import { AddCardModalService } from '../../../../core/services/add-card-modal.service';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
-import type { Card, CardStyle } from '../../../../core/models';
+import { NoteWidgetComponent } from '../../../widgets/note-widget/note-widget.component';
+import { SystemMetricsWidgetComponent } from '../../../widgets/system-metrics-widget/system-metrics-widget.component';
+import { SystemProcessesWidgetComponent } from '../../../widgets/system-processes-widget/system-processes-widget.component';
+import { SystemNetworkWidgetComponent } from '../../../widgets/system-network-widget/system-network-widget.component';
+import { PlexWidgetComponent } from '../../../widgets/plex-widget/plex-widget.component';
+import type { Card, CardStyle, CardWidget, NoteWidgetConfig, SystemMetricsWidgetConfig, SystemProcessesWidgetConfig, SystemNetworkWidgetConfig, PlexWidgetConfig } from '../../../../core/models';
 
 @Component({
   selector: 'app-dash-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, HasPermissionDirective, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, HasPermissionDirective, FontAwesomeModule, NoteWidgetComponent, SystemMetricsWidgetComponent, SystemProcessesWidgetComponent, SystemNetworkWidgetComponent, PlexWidgetComponent],
   templateUrl: './dash-card.component.html',
-  styleUrls: ['./dash-card.component.scss']
+  styleUrls: ['./dash-card.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashCardComponent {
   private cardService = inject(CardService);
+  private themeService = inject(ThemeService);
+  private iconCatalog = inject(IconCatalogService);
+  private addCardModal = inject(AddCardModalService);
 
   // FontAwesome Icons
-  faPalette = faPalette;
+  faPencil = faPencil;
   faTrash = faTrash;
+  faEllipsis = faEllipsis;
+  faSpinner = faSpinner;
+  faCheck = faCheck;
+
+  // Save state for note widgets
+  noteSaveState = signal<'idle' | 'editing' | 'saving' | 'saved'>('idle');
 
   @Input({ required: true }) card!: Card;
   @Input() designMode = false;
 
   @Output() cardDeleted = new EventEmitter<string>();
 
-  showStyleEditor = signal(false);
-  borderRadius = signal(16);
-
-  ngOnInit(): void {
-    const style = this.getCardStyle();
-    if (style.borderRadius !== undefined) {
-      this.borderRadius.set(style.borderRadius);
+  // Computed signal for theme-aware icon URL
+  iconUrl = computed(() => {
+    // If the card uses a catalog icon and has a catalog ID
+    if (this.card.iconSource === 'catalog' && this.card.iconCatalogId) {
+      const themeVariant = this.themeService.themeVariant();
+      const variantUrl = this.iconCatalog.getIconForThemeVariant(this.card.iconCatalogId, themeVariant);
+      if (variantUrl) {
+        return variantUrl;
+      }
     }
-  }
+
+    // Fall back to custom URL or undefined
+    return this.card.iconCustomUrl || undefined;
+  });
 
   getCardStyle(): CardStyle {
     if (!this.card.style) return {};
@@ -43,20 +66,8 @@ export class DashCardComponent {
       : this.card.style;
   }
 
-  updateBorderRadius(value: number): void {
-    this.borderRadius.set(value);
-    this.updateStyle({ borderRadius: value });
-  }
-
-  updateStyle(partialStyle: Partial<CardStyle>): void {
-    const currentStyle = this.getCardStyle();
-    const newStyle = { ...currentStyle, ...partialStyle };
-
-    this.cardService.updateCardStyle(this.card.id, newStyle).subscribe({
-      next: (updatedCard) => {
-        this.card.style = updatedCard.style;
-      }
-    });
+  editCard(): void {
+    this.addCardModal.openForEdit(this.card);
   }
 
   deleteCard(): void {
@@ -121,8 +132,8 @@ export class DashCardComponent {
   }
 
   handleCardClick(): void {
-    // Don't navigate if in design mode
-    if (this.designMode) {
+    // Don't navigate if in design mode or if card has widgets
+    if (this.designMode || this.hasWidgets()) {
       return;
     }
 
@@ -130,5 +141,60 @@ export class DashCardComponent {
     if (url) {
       window.open(url, '_blank');
     }
+  }
+
+  hasWidgets(): boolean {
+    return !!(this.card.widgets && this.card.widgets.length > 0);
+  }
+
+  getNoteWidget(): CardWidget | undefined {
+    return this.card.widgets?.find(w => w.type === 'note');
+  }
+
+  getNoteWidgetConfig(config: Record<string, any>): NoteWidgetConfig {
+    return config as NoteWidgetConfig;
+  }
+
+  onNoteWidgetSave(config: NoteWidgetConfig): void {
+    // Update the card's widget configuration
+    const updatedWidgets = this.card.widgets?.map(w =>
+      w.type === 'note' ? { ...w, config } : w
+    ) || [];
+
+    // Update local card immediately for optimistic UI
+    this.card = { ...this.card, widgets: updatedWidgets };
+
+    // Save to backend - only send allowed fields
+    this.cardService.updateCard(this.card.id, {
+      widgets: updatedWidgets
+    }).subscribe({
+      next: () => {
+        console.log('Note saved successfully');
+      },
+      error: (err) => {
+        console.error('Failed to save note:', err);
+        alert('Failed to save note. Please try again.');
+      }
+    });
+  }
+
+  onNoteSaveStateChange(state: 'idle' | 'editing' | 'saving' | 'saved'): void {
+    this.noteSaveState.set(state);
+  }
+
+  getSystemMetricsConfig(config: Record<string, any>): SystemMetricsWidgetConfig {
+    return config as SystemMetricsWidgetConfig;
+  }
+
+  getSystemProcessesConfig(config: Record<string, any>): SystemProcessesWidgetConfig {
+    return config as SystemProcessesWidgetConfig;
+  }
+
+  getSystemNetworkConfig(config: Record<string, any>): SystemNetworkWidgetConfig {
+    return config as SystemNetworkWidgetConfig;
+  }
+
+  getPlexConfig(config: Record<string, any>): PlexWidgetConfig {
+    return config as PlexWidgetConfig;
   }
 }

@@ -1,0 +1,88 @@
+<div class="modal-overlay" (click)="handleCancel()">
+  <div class="modal card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <fa-icon [icon]="faNetworkWired" class="icon-sm"></fa-icon>
+        Discover Services
+      </h2>
+      <button class="btn btn-sm btn-secondary" (click)="handleCancel()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <fa-icon [icon]="faSpinner" class="icon-xl" spin="true"></fa-icon>
+        <p>Scanning for services...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <p class="error-message">{{ error() }}</p>
+        <button class="btn btn-primary" (click)="retry()">
+          <span>Retry</span>
+        </button>
+      </div>
+    } @else if (discoveredServices().length === 0) {
+      <div class="empty-state">
+        <fa-icon [icon]="faNetworkWired" class="icon-xl"></fa-icon>
+        <p>No services detected on this machine.</p>
+        <p class="hint">Make sure Docker containers are running or services are exposed on common ports.</p>
+      </div>
+    } @else {
+      <div class="services-content">
+        <div class="services-header">
+          <p>Found {{ discoveredServices().length }} service(s). Select which ones to add:</p>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="toggleAll()">
+            <span>{{ getSelectedCount() === discoveredServices().length ? 'Deselect All' : 'Select All' }}</span>
+          </button>
+        </div>
+
+        <div class="services-list">
+          @for (service of discoveredServices(); track service.name) {
+            <div
+              class="service-item"
+              [class.selected]="service.selected"
+              (click)="toggleService(service)"
+            >
+              <input
+                type="checkbox"
+                [checked]="service.selected"
+                (click)="$event.stopPropagation()"
+                (change)="toggleService(service)"
+              />
+
+              <div class="service-info">
+                <div class="service-header">
+                  <h3>{{ service.suggestedTitle }}</h3>
+                  <span class="service-type-badge">{{ service.type }}</span>
+                </div>
+
+                <div class="service-details">
+                  @if (service.containerName) {
+                    <span class="detail">Container: {{ service.containerName }}</span>
+                  }
+                  @if (service.port) {
+                    <span class="detail">Port: {{ service.port }}</span>
+                  }
+                  @if (service.suggestedUrl) {
+                    <span class="detail url">{{ service.suggestedUrl }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="handleCancel()">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="btn btn-primary" (click)="handleSubmit()">
+          <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+          <span>Add {{ getSelectedCount() }} Card(s)</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="note-widget">
+  <!-- Editor using ngx-tiptap -->
+  <div class="tiptap-editor-container" [class.read-only]="!editable">
+    @if (editor) {
+      <tiptap-editor [editor]="editor"></tiptap-editor>
+    }
+  </div>
+</div>
+
+<!-- Floating Toolbar -->
+@if (editable && isFocused()) {
+  <div class="floating-toolbar" #floatingToolbar>
+    <div class="toolbar-content">
+      <!-- Text formatting -->
+      <div class="toolbar-group">
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('bold')"
+          (mousedown)="$event.preventDefault()"
+          (click)="toggleBold()"
+          title="Bold (Ctrl+B)"
+        >
+          <strong>B</strong>
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('italic')"
+          (mousedown)="$event.preventDefault()"
+          (click)="toggleItalic()"
+          title="Italic (Ctrl+I)"
+        >
+          <em>I</em>
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('strike')"
+          (mousedown)="$event.preventDefault()"
+          (click)="toggleStrike()"
+          title="Strikethrough"
+        >
+          <s>S</s>
+        </button>
+      </div>
+
+      <!-- Headings -->
+      <div class="toolbar-group">
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('heading', { level: 1 })"
+          (mousedown)="$event.preventDefault()"
+          (click)="setHeading(1)"
+          title="Heading 1"
+        >
+          H1
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('heading', { level: 2 })"
+          (mousedown)="$event.preventDefault()"
+          (click)="setHeading(2)"
+          title="Heading 2"
+        >
+          H2
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('heading', { level: 3 })"
+          (mousedown)="$event.preventDefault()"
+          (click)="setHeading(3)"
+          title="Heading 3"
+        >
+          H3
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('paragraph')"
+          (mousedown)="$event.preventDefault()"
+          (click)="setParagraph()"
+          title="Paragraph"
+        >
+          P
+        </button>
+      </div>
+
+      <!-- Lists -->
+      <div class="toolbar-group">
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('bulletList')"
+          (mousedown)="$event.preventDefault()"
+          (click)="toggleBulletList()"
+          title="Bullet List"
+        >
+          <fa-icon [icon]="faList"></fa-icon>
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [class.active]="isActive('orderedList')"
+          (mousedown)="$event.preventDefault()"
+          (click)="toggleOrderedList()"
+          title="Numbered List"
+        >
+          <fa-icon [icon]="faListOl"></fa-icon>
+        </button>
+      </div>
+
+      <!-- Undo/Redo -->
+      <div class="toolbar-group">
+        <button
+          type="button"
+          class="toolbar-btn"
+          [disabled]="!canUndo()"
+          (mousedown)="$event.preventDefault()"
+          (click)="undo()"
+          title="Undo (Ctrl+Z)"
+        >
+          ↶
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn"
+          [disabled]="!canRedo()"
+          (mousedown)="$event.preventDefault()"
+          (click)="redo()"
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          ↷
+        </button>
+      </div>
+    </div>
+  </div>
+}

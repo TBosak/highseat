@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "generated": "2025-12-09T21:57:01.210Z",
-  "totalApps": 2320,
+  "generated": "2025-12-18T21:17:34.464Z",
+  "totalApps": 2334,
   "apps": [
     {
       "id": "1337x",
@@ -755,6 +755,30 @@
         ]
       },
       "lastUpdate": "2025-04-18T08:34:26.627973"
+    },
+    {
+      "id": "alexandrie",
+      "name": "Alexandrie",
+      "aliases": [],
+      "categories": [],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/alexandrie.svg"
+          },
+          {
+            "name": "dark",
+            "path": "/app-icons/svg/alexandrie-dark.svg"
+          },
+          {
+            "name": "light",
+            "path": "/app-icons/svg/alexandrie.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:39:11.434760"
     },
     {
       "id": "algo",
@@ -2506,6 +2530,27 @@
       "lastUpdate": "2022-08-16T17:22:56Z"
     },
     {
+      "id": "audora",
+      "name": "Audora",
+      "aliases": [
+        "audora",
+        "music"
+      ],
+      "categories": [
+        "Music"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/audora.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:44:34.070457"
+    },
+    {
       "id": "aura",
       "name": "Aura",
       "aliases": [],
@@ -3878,6 +3923,24 @@
         ]
       },
       "lastUpdate": "2025-09-09T20:49:37.952500"
+    },
+    {
+      "id": "blender",
+      "name": "Blender",
+      "aliases": [],
+      "categories": [
+        "Development"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/blender.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T16:05:07.217137"
     },
     {
       "id": "blocky",
@@ -10386,6 +10449,24 @@
         ]
       },
       "lastUpdate": "2025-08-17T19:24:41.762997"
+    },
+    {
+      "id": "ente-auth",
+      "name": "Ente Auth",
+      "aliases": [],
+      "categories": [
+        "Security"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/ente-auth.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:43:02.141854"
     },
     {
       "id": "ente-photos",
@@ -21614,6 +21695,24 @@
       "lastUpdate": "2025-01-07T17:54:03Z"
     },
     {
+      "id": "mantrae",
+      "name": "Mantrae",
+      "aliases": [],
+      "categories": [
+        "Cloud"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/mantrae.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:26:26.285091"
+    },
+    {
       "id": "many-notes",
       "name": "Many Notes",
       "aliases": [],
@@ -26448,6 +26547,32 @@
       "lastUpdate": "2025-05-21T09:01:47.712689"
     },
     {
+      "id": "okta",
+      "name": "Okta",
+      "aliases": [],
+      "categories": [
+        "Security"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/okta.svg"
+          },
+          {
+            "name": "dark",
+            "path": "/app-icons/svg/okta-dark.svg"
+          },
+          {
+            "name": "light",
+            "path": "/app-icons/svg/okta.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:24:21.576213"
+    },
+    {
       "id": "olivetin",
       "name": "Olivetin",
       "aliases": [],
@@ -29092,6 +29217,32 @@
       "lastUpdate": "2024-10-20T17:24:03Z"
     },
     {
+      "id": "pepperbox-tv",
+      "name": "Pepperbox Tv",
+      "aliases": [
+        "pepperbox"
+      ],
+      "categories": [],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/pepperbox-tv.svg"
+          },
+          {
+            "name": "dark",
+            "path": "/app-icons/svg/pepperbox-tv-dark.svg"
+          },
+          {
+            "name": "light",
+            "path": "/app-icons/svg/pepperbox-tv.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:18:42.205790"
+    },
+    {
       "id": "peppermint",
       "name": "Peppermint",
       "aliases": [
@@ -30856,6 +31007,24 @@
         ]
       },
       "lastUpdate": "2023-04-13T13:56:18Z"
+    },
+    {
+      "id": "posteria",
+      "name": "Posteria",
+      "aliases": [],
+      "categories": [
+        "Media"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/posteria.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:37:12.425409"
     },
     {
       "id": "posterizarr",
@@ -33753,6 +33922,26 @@
         ]
       },
       "lastUpdate": "2023-04-13T13:56:18Z"
+    },
+    {
+      "id": "ruby-on-rails",
+      "name": "Ruby On Rails",
+      "aliases": [
+        "rails"
+      ],
+      "categories": [
+        "Development"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/ruby-on-rails.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:53:03.924405"
     },
     {
       "id": "ruckus-unleashed",
@@ -37174,6 +37363,22 @@
       "lastUpdate": "2023-04-13T13:56:18Z"
     },
     {
+      "id": "swingmusic",
+      "name": "Swingmusic",
+      "aliases": [],
+      "categories": [],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/swingmusic.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:41:37.117431"
+    },
+    {
       "id": "swizzin",
       "name": "Swizzin",
       "aliases": [
@@ -39024,6 +39229,34 @@
         ]
       },
       "lastUpdate": "2025-01-07T17:54:03Z"
+    },
+    {
+      "id": "title-card-maker",
+      "name": "Title Card Maker",
+      "aliases": [
+        "tcm"
+      ],
+      "categories": [
+        "Media"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/title-card-maker.svg"
+          },
+          {
+            "name": "dark",
+            "path": "/app-icons/svg/title-card-maker-dark.svg"
+          },
+          {
+            "name": "light",
+            "path": "/app-icons/svg/title-card-maker.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:35:31.092558"
     },
     {
       "id": "tmdb",
@@ -41003,6 +41236,32 @@
       "lastUpdate": "2023-04-14T17:37:05Z"
     },
     {
+      "id": "verdaccio",
+      "name": "Verdaccio",
+      "aliases": [],
+      "categories": [
+        "Development"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/verdaccio.svg"
+          },
+          {
+            "name": "dark",
+            "path": "/app-icons/svg/verdaccio-dark.svg"
+          },
+          {
+            "name": "light",
+            "path": "/app-icons/svg/verdaccio.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:29:23.199348"
+    },
+    {
       "id": "verizon",
       "name": "Verizon",
       "aliases": [],
@@ -41730,6 +41989,27 @@
         ]
       },
       "lastUpdate": "2025-10-23T16:57:53.105894"
+    },
+    {
+      "id": "vue-js",
+      "name": "Vue Js",
+      "aliases": [
+        "vue",
+        "vuejs"
+      ],
+      "categories": [
+        "Development"
+      ],
+      "icons": {
+        "base": "svg",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/svg/vue-js.svg"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T16:13:39.183811"
     },
     {
       "id": "vuetorrent",
@@ -43013,6 +43293,24 @@
         ]
       },
       "lastUpdate": "2025-01-07T17:54:03Z"
+    },
+    {
+      "id": "wishlist",
+      "name": "Wishlist",
+      "aliases": [],
+      "categories": [
+        "Organization"
+      ],
+      "icons": {
+        "base": "png",
+        "variants": [
+          {
+            "name": "default",
+            "path": "/app-icons/png/wishlist.png"
+          }
+        ]
+      },
+      "lastUpdate": "2025-12-07T15:13:56.157850"
     },
     {
       "id": "wizarr",

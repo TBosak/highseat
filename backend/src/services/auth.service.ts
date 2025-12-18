@@ -107,7 +107,10 @@ export class AuthService {
         username: user.username,
         email: user.email,
         displayName: user.displayName,
-        roles
+        roles,
+        preferredThemeId: user.preferredThemeId,
+        preferredStyleMode: user.preferredStyleMode,
+        hideLogo: user.hideLogo
       },
       accessToken,
       refreshToken
@@ -146,7 +149,10 @@ export class AuthService {
         username: user.username,
         email: user.email,
         displayName: user.displayName,
-        roles
+        roles,
+        preferredThemeId: user.preferredThemeId,
+        preferredStyleMode: user.preferredStyleMode,
+        hideLogo: user.hideLogo
       },
       accessToken,
       refreshToken

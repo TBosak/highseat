@@ -1,0 +1,137 @@
+.system-metrics-widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.status-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+
+  &.connecting {
+    color: var(--base0D);
+  }
+
+  &.error {
+    color: var(--base08);
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--base02);
+    border-top-color: var(--base0D);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .reconnect-btn {
+    padding: 0.5rem 1rem;
+    background: var(--base0D);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--base0C);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.metrics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--base01);
+  border-radius: 8px;
+  border: 1px solid var(--base02);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+
+  &.normal {
+    color: var(--base0B);
+  }
+
+  &.warning {
+    color: var(--base0A);
+  }
+
+  &.critical {
+    color: var(--base08);
+  }
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--base02);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 4px;
+
+  &.normal {
+    background: var(--base0B);
+  }
+
+  &.warning {
+    background: var(--base0A);
+  }
+
+  &.critical {
+    background: var(--base08);
+  }
+}
+
+.metric-details {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}

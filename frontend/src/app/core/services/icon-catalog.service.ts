@@ -165,6 +165,23 @@ export class IconCatalogService {
   }
 
   /**
+   * Get icon URL for a specific theme variant (light/dark)
+   * Falls back to default if specific variant not available
+   */
+  getIconForThemeVariant(iconId: string, themeVariant: 'light' | 'dark'): string | null {
+    const icon = this.getIconById(iconId);
+    if (!icon) return null;
+
+    // Try to find the variant matching the theme (light/dark)
+    const variantMatch = icon.variants.find(v => v.name === themeVariant);
+    if (variantMatch) return variantMatch.path;
+
+    // Fall back to default variant
+    const defaultVariant = icon.variants.find(v => v.name === 'default');
+    return defaultVariant?.path || icon.iconUrl;
+  }
+
+  /**
    * Check if icons are loaded
    */
   isLoaded(): boolean {

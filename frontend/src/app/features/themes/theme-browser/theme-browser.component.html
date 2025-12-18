@@ -20,10 +20,17 @@
         </select>
       </div>
 
+      <button class="btn btn-primary" (click)="openWizard()">
+        <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+        <span>Create Custom Theme</span>
+      </button>
+
       @if (previewTheme()) {
         <div class="preview-indicator">
           Previewing: <strong>{{ previewTheme()!.name }}</strong>
-          <button class="btn btn-sm btn-secondary" (click)="clearPreview()">Clear</button>
+          <button class="btn btn-sm btn-secondary" (click)="clearPreview()" title="Clear">
+            <fa-icon [icon]="faTimes" class="icon-sm"></fa-icon>
+          </button>
         </div>
       }
     </div>
@@ -65,7 +72,7 @@
     </div>
   </div>
 
-  <!-- Theme Grid -->
+  <!-- Theme Grid with Virtual Scrolling -->
   @if (loading()) {
     <div class="loading-state">
       <p>Loading themes...</p>
@@ -75,52 +82,69 @@
       <p>No themes found matching your filters.</p>
     </div>
   } @else {
-    <div class="theme-grid">
-      @for (theme of filteredThemes(); track theme.filename) {
-        <div class="theme-card card" [class.active]="previewTheme()?.filename === theme.filename">
-          <!-- Theme Preview Colors -->
-          <div class="color-strip">
-            @for (color of getThemePreviewColors(theme); track color) {
-              <div class="color-swatch" [style.background-color]="color"></div>
+    <cdk-virtual-scroll-viewport [itemSize]="virtualScrollItemSize" class="theme-viewport">
+      <div class="theme-grid">
+        @for (row of themeRows(); track $index) {
+          <div class="theme-row">
+            @for (theme of row; track theme.filename) {
+              <div class="theme-card card" [class.active]="previewTheme()?.filename === theme.filename">
+                <!-- Theme Preview Colors -->
+                <div class="color-strip">
+                  @for (color of getThemePreviewColors(theme); track color) {
+                    <div class="color-swatch" [style.background-color]="color"></div>
+                  }
+                </div>
+
+                <!-- Theme Info -->
+                <div class="theme-info">
+                  <h3 class="theme-name">{{ theme.name }}</h3>
+                  <p class="theme-author">{{ theme.author }}</p>
+                  <div class="theme-meta">
+                    <span class="badge" [class.badge-dark]="theme.variant === 'dark'" [class.badge-light]="theme.variant === 'light'">
+                      @if (theme.variant === 'dark') {
+                        <fa-icon [icon]="faMoon" class="icon-xs"></fa-icon>
+                      } @else {
+                        <fa-icon [icon]="faSun" class="icon-xs"></fa-icon>
+                      }
+                      {{ theme.variant }}
+                    </span>
+                    <span class="badge badge-system">{{ theme.system }}</span>
+                    @if (theme.filename && theme.filename.startsWith('custom-')) {
+                      <span class="badge badge-custom">Custom</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="theme-actions">
+                  <button
+                    class="btn btn-sm btn-secondary"
+                    (click)="previewThemeAction(theme)"
+                    title="Preview this theme"
+                  >
+                    <fa-icon [icon]="faEye" class="icon-sm"></fa-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-success"
+                    (click)="setAsPreferred(theme)"
+                    title="Set as my preferred theme"
+                  >
+                    <fa-icon [icon]="faHeart" class="icon-sm"></fa-icon>
+                  </button>
+                </div>
+              </div>
             }
           </div>
+        }
+      </div>
+    </cdk-virtual-scroll-viewport>
+  }
 
-          <!-- Theme Info -->
-          <div class="theme-info">
-            <h3 class="theme-name">{{ theme.name }}</h3>
-            <p class="theme-author">{{ theme.author }}</p>
-            <div class="theme-meta">
-              <span class="badge" [class.badge-dark]="theme.variant === 'dark'" [class.badge-light]="theme.variant === 'light'">
-                @if (theme.variant === 'dark') {
-                  <fa-icon [icon]="faMoon" class="icon-xs"></fa-icon>
-                } @else {
-                  <fa-icon [icon]="faSun" class="icon-xs"></fa-icon>
-                }
-                {{ theme.variant }}
-              </span>
-              <span class="badge badge-system">{{ theme.system }}</span>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="theme-actions">
-            <button
-              class="btn btn-sm btn-secondary"
-              (click)="previewThemeAction(theme)"
-              title="Preview this theme"
-            >
-              <fa-icon [icon]="faEye" class="icon-sm"></fa-icon>
-            </button>
-            <button
-              class="btn btn-sm btn-success"
-              (click)="setAsPreferred(theme)"
-              title="Set as my preferred theme"
-            >
-              <fa-icon [icon]="faHeart" class="icon-sm"></fa-icon>
-            </button>
-          </div>
-        </div>
-      }
-    </div>
+  <!-- Custom Theme Wizard Modal -->
+  @if (showWizard()) {
+    <app-custom-theme-wizard
+      (saved)="handleCustomThemeCreated($event)"
+      (cancelled)="closeWizard()"
+    ></app-custom-theme-wizard>
   }
 </div>

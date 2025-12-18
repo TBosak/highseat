@@ -1,0 +1,246 @@
+<div class="modal-overlay" (click)="cancel()">
+  <div class="modal wizard-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Create Custom Theme</h2>
+      <button class="btn-close" (click)="cancel()" title="Close">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="wizard-progress">
+      <div class="progress-step" [class.active]="currentStep() >= 1" [class.current]="currentStep() === 1">
+        <div class="step-circle">1</div>
+        <span>Info</span>
+      </div>
+      <div class="progress-line" [class.active]="currentStep() >= 2"></div>
+      <div class="progress-step" [class.active]="currentStep() >= 2" [class.current]="currentStep() === 2">
+        <div class="step-circle">2</div>
+        <span>Colors</span>
+      </div>
+      <div class="progress-line" [class.active]="currentStep() >= 3"></div>
+      <div class="progress-step" [class.active]="currentStep() >= 3" [class.current]="currentStep() === 3">
+        <div class="step-circle">3</div>
+        <span>Preview</span>
+      </div>
+    </div>
+
+    <div class="wizard-content">
+      <!-- Step 1: Basic Info -->
+      @if (currentStep() === 1) {
+        <div class="wizard-step">
+          <h3>Theme Information</h3>
+
+          <div class="form-group">
+            <label for="theme-name">Theme Name *</label>
+            <input
+              id="theme-name"
+              type="text"
+              [(ngModel)]="themeName"
+              placeholder="My Custom Theme"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="theme-author">Author *</label>
+            <input
+              id="theme-author"
+              type="text"
+              [(ngModel)]="themeAuthor"
+              placeholder="Your Name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="variant">Variant</label>
+            <select id="variant" [(ngModel)]="variant">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="system">Color System</label>
+            <select id="system" [(ngModel)]="system">
+              <option value="base16">Base16 (16 colors)</option>
+              <option value="base24">Base24 (24 colors)</option>
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Step 2: Colors -->
+      @if (currentStep() === 2) {
+        <div class="wizard-step">
+          <h3>Color Palette</h3>
+          <p class="step-description">Define your color palette. Hover over each color for its purpose.</p>
+
+          <div class="color-grid">
+            <!-- Background Colors -->
+            <div class="color-section">
+              <h4>Backgrounds</h4>
+              <div class="color-row">
+                <label title="Default Background">base00</label>
+                <input type="color" class="color-input" [(ngModel)]="base00" />
+              </div>
+              <div class="color-row">
+                <label title="Lighter Background">base01</label>
+                <input type="color" class="color-input" [(ngModel)]="base01" />
+              </div>
+              <div class="color-row">
+                <label title="Selection Background">base02</label>
+                <input type="color" class="color-input" [(ngModel)]="base02" />
+              </div>
+              <div class="color-row">
+                <label title="Comments, Invisibles">base03</label>
+                <input type="color" class="color-input" [(ngModel)]="base03" />
+              </div>
+            </div>
+
+            <!-- Foreground Colors -->
+            <div class="color-section">
+              <h4>Foregrounds</h4>
+              <div class="color-row">
+                <label title="Dark Foreground">base04</label>
+                <input type="color" class="color-input" [(ngModel)]="base04" />
+              </div>
+              <div class="color-row">
+                <label title="Default Foreground">base05</label>
+                <input type="color" class="color-input" [(ngModel)]="base05" />
+              </div>
+              <div class="color-row">
+                <label title="Light Foreground">base06</label>
+                <input type="color" class="color-input" [(ngModel)]="base06" />
+              </div>
+              <div class="color-row">
+                <label title="Lightest Foreground">base07</label>
+                <input type="color" class="color-input" [(ngModel)]="base07" />
+              </div>
+            </div>
+
+            <!-- Accent Colors -->
+            <div class="color-section">
+              <h4>Accents</h4>
+              <div class="color-row">
+                <label title="Red (Variables, Errors)">base08</label>
+                <input type="color" class="color-input" [(ngModel)]="base08" />
+              </div>
+              <div class="color-row">
+                <label title="Orange (Integers, Constants)">base09</label>
+                <input type="color" class="color-input" [(ngModel)]="base09" />
+              </div>
+              <div class="color-row">
+                <label title="Yellow (Classes, Warnings)">base0A</label>
+                <input type="color" class="color-input" [(ngModel)]="base0A" />
+              </div>
+              <div class="color-row">
+                <label title="Green (Strings, Success)">base0B</label>
+                <input type="color" class="color-input" [(ngModel)]="base0B" />
+              </div>
+              <div class="color-row">
+                <label title="Cyan (Support, Regex)">base0C</label>
+                <input type="color" class="color-input" [(ngModel)]="base0C" />
+              </div>
+              <div class="color-row">
+                <label title="Blue (Functions, Info)">base0D</label>
+                <input type="color" class="color-input" [(ngModel)]="base0D" />
+              </div>
+              <div class="color-row">
+                <label title="Magenta (Keywords)">base0E</label>
+                <input type="color" class="color-input" [(ngModel)]="base0E" />
+              </div>
+              <div class="color-row">
+                <label title="Brown (Deprecated)">base0F</label>
+                <input type="color" class="color-input" [(ngModel)]="base0F" />
+              </div>
+            </div>
+
+            <!-- Base24 Additional Colors -->
+            @if (isBase24()) {
+              <div class="color-section">
+                <h4>Base24 Extended</h4>
+                <div class="color-row">
+                  <label title="Extended Color 1">base10</label>
+                  <input type="color" class="color-input" [(ngModel)]="base10" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 2">base11</label>
+                  <input type="color" class="color-input" [(ngModel)]="base11" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 3">base12</label>
+                  <input type="color" class="color-input" [(ngModel)]="base12" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 4">base13</label>
+                  <input type="color" class="color-input" [(ngModel)]="base13" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 5">base14</label>
+                  <input type="color" class="color-input" [(ngModel)]="base14" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 6">base15</label>
+                  <input type="color" class="color-input" [(ngModel)]="base15" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 7">base16</label>
+                  <input type="color" class="color-input" [(ngModel)]="base16" />
+                </div>
+                <div class="color-row">
+                  <label title="Extended Color 8">base17</label>
+                  <input type="color" class="color-input" [(ngModel)]="base17" />
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Step 3: Preview -->
+      @if (currentStep() === 3) {
+        <div class="wizard-step">
+          <h3>Preview</h3>
+          <div class="theme-preview">
+            <div class="preview-card" [style.background]="base00()" [style.color]="base05()">
+              <h4 [style.color]="base0D()">{{ themeName() }}</h4>
+              <p [style.color]="base04()">By {{ themeAuthor() }}</p>
+              <div class="preview-colors">
+                <div class="preview-swatch" [style.background]="base08()" title="Red"></div>
+                <div class="preview-swatch" [style.background]="base09()" title="Orange"></div>
+                <div class="preview-swatch" [style.background]="base0A()" title="Yellow"></div>
+                <div class="preview-swatch" [style.background]="base0B()" title="Green"></div>
+                <div class="preview-swatch" [style.background]="base0C()" title="Cyan"></div>
+                <div class="preview-swatch" [style.background]="base0D()" title="Blue"></div>
+                <div class="preview-swatch" [style.background]="base0E()" title="Magenta"></div>
+                <div class="preview-swatch" [style.background]="base0F()" title="Brown"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="modal-actions">
+      @if (currentStep() > 1) {
+        <button class="btn btn-secondary" (click)="prevStep()">
+          Previous
+        </button>
+      }
+
+      <button class="btn btn-secondary" (click)="cancel()">
+        Cancel
+      </button>
+
+      @if (currentStep() < 3) {
+        <button class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceed()">
+          Next
+        </button>
+      } @else {
+        <button class="btn btn-success" (click)="save()">
+          Create Theme
+        </button>
+      }
+    </div>
+  </div>
+</div>

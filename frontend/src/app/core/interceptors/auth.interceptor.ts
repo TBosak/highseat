@@ -29,6 +29,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error) => {
       if (error.status === 401 && !req.url.includes('/api/auth/refresh')) {
         // Try to refresh the token
+        const refreshToken = authService.getRefreshToken();
+
+        // If no refresh token exists, redirect to login
+        if (!refreshToken) {
+          console.log('No refresh token available, redirecting to login');
+          router.navigate(['/login']);
+          return throwError(() => error);
+        }
+
         return authService.refreshAccessToken().pipe(
           switchMap(() => {
             // Retry the request with new token
@@ -41,7 +50,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError((refreshError) => {
-            // Refresh failed, redirect to login
+            // Refresh failed, clear auth and redirect to login
+            console.log('Token refresh failed, clearing auth and redirecting to login');
+            // Clear tokens from localStorage by calling logout through the service
+            // This ensures tokens are properly cleared
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('permissions');
             router.navigate(['/login']);
             return throwError(() => refreshError);
           })

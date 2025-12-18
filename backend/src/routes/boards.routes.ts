@@ -35,31 +35,35 @@ boardsRouter.get('/', requirePermission('board:view'), async (c) => {
   return c.json(userBoards);
 });
 
-// Get single board with tabs
+// Get single board with tabs and zones
+// OPTIMIZED: Uses Drizzle relational query to eliminate N+1 problem
+// Before: 1 query for board + 1 query for tabs + N queries for zones (one per tab)
+// After: 1 single query that fetches everything with proper joins
 boardsRouter.get('/:boardId', requirePermission('board:view'), async (c) => {
   const boardId = c.req.param('boardId');
   const user = c.get('user') as JWTPayload;
 
-  const [board] = await db
-    .select()
-    .from(boards)
-    .where(and(
-      eq(boards.id, boardId),
-      // eq(boards.createdBy, user.userId)
-    ))
-    .limit(1);
+  // Use Drizzle relational query to fetch board with all nested data in a single query
+  // This eliminates the N+1 query problem
+  const board = await db.query.boards.findFirst({
+    where: eq(boards.id, boardId),
+    with: {
+      tabs: {
+        orderBy: (tabs, { asc }) => [asc(tabs.order)],
+        with: {
+          zones: {
+            orderBy: (zones, { asc }) => [asc(zones.order)]
+          }
+        }
+      }
+    }
+  });
 
   if (!board) {
     return c.json({ error: 'Board not found' }, 404);
   }
 
-  const boardTabs = await db
-    .select()
-    .from(tabs)
-    .where(eq(tabs.boardId, boardId))
-    .orderBy(tabs.order);
-
-  return c.json({ ...board, tabs: boardTabs });
+  return c.json(board);
 });
 
 // Create board

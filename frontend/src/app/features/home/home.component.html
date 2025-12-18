@@ -8,7 +8,9 @@
     <!-- Top Navigation Bar -->
     <header class="top-nav">
       <div class="nav-left">
-        <img src="/header.png" alt="Homelab Dashboard" class="app-logo" />
+        @if (!user()?.hideLogo) {
+          <img src="/header.png" alt="Highseat" class="app-logo" />
+        }
       </div>
 
       <!-- Board Tabs (only show if multiple boards) -->
@@ -28,6 +30,30 @@
 
       <!-- User Actions -->
       <div class="nav-right">
+        <!-- Add Card/Service Discovery Menu (only in design mode) -->
+        @if (designMode.isDesignMode()) {
+          <div class="menu-container" *hasPermission="'card:add'">
+            <button class="btn btn-primary" (click)="toggleAddMenu()" title="Add">
+              <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+            </button>
+
+            @if (showAddMenu()) {
+              <div class="dropdown-menu">
+                <button class="menu-item" (click)="openAddCardFromMenu()">
+                  <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
+                  <span>Add Card</span>
+                </button>
+
+                <button class="menu-item" (click)="openServiceDiscovery()">
+                  <fa-icon [icon]="faNetworkWired" class="icon-sm"></fa-icon>
+                  <span>Discover Services</span>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Hamburger Menu -->
         <div class="menu-container">
           <button class="btn btn-secondary" (click)="toggleMenu()" title="Menu">
             <fa-icon [icon]="faBars" class="icon-sm"></fa-icon>
@@ -39,13 +65,6 @@
                 <fa-icon [icon]="faPencil" class="icon-sm"></fa-icon>
                 <span>{{ designMode.isDesignMode() ? 'Exit Design' : 'Design Mode' }}</span>
               </button>
-
-              @if (designMode.isDesignMode()) {
-                <button class="menu-item" (click)="openAddCardModal()" *hasPermission="'card:add'">
-                  <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
-                  <span>Add Card</span>
-                </button>
-              }
 
               <div class="menu-divider"></div>
 
@@ -79,7 +98,7 @@
     <main class="board-container">
       @if (boards().length === 0) {
         <div class="empty-state">
-          <h2>Welcome to your Homelab Dashboard!</h2>
+          <h2>Welcome to Highseat!</h2>
           <p>Get started by creating your first board.</p>
           <button class="btn btn-primary" (click)="openSettings()" *hasPermission="'board:edit'">
             <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
@@ -93,5 +112,13 @@
         </div>
       }
     </main>
+
+    <!-- Service Discovery Modal -->
+    @if (serviceDiscoveryModal.showModal()) {
+      <app-service-discovery-modal
+        (servicesSelected)="handleServicesDiscovered($event)"
+        (cancelled)="serviceDiscoveryModal.close()"
+      ></app-service-discovery-modal>
+    }
   }
 </div>

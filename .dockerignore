@@ -1,0 +1,69 @@
+# Dependencies
+node_modules
+**/node_modules
+bun.lockb
+**/bun.lockb
+
+# Database files (will be mounted as volume)
+**/*.db
+**/*.db-shm
+**/*.db-wal
+backend/db/
+backend/*.db
+
+# Uploads directory (will be mounted as volume)
+backend/uploads/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Development files
+.git
+.gitignore
+**/*.md
+README.md
+DOCKER.md
+
+# IDE
+.vscode
+.idea
+**/.vscode
+**/.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+**/.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+.nyc_output
+**/coverage
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Build outputs (frontend will be built in Docker)
+frontend/dist/
+frontend/.angular/
+backend/dist/
+
+# Lock files
+package-lock.json
+**/package-lock.json

@@ -17,6 +17,10 @@ export interface UpdateUserData {
   roles?: string[];
 }
 
+export interface UpdateUserPreferencesData {
+  hideLogo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,6 +38,10 @@ export class UserService {
 
   updateUser(userId: string, data: UpdateUserData): Observable<User> {
     return this.http.patch<User>(`${this.apiUrl}/${userId}`, data);
+  }
+
+  updatePreferences(data: UpdateUserPreferencesData): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/me/preferences`, data);
   }
 
   deleteUser(userId: string): Observable<void> {

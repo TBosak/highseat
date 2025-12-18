@@ -13,6 +13,9 @@ themesRouter.use('*', authMiddleware);
 
 const createThemeSchema = z.object({
   name: z.string().min(1),
+  author: z.string().optional(),
+  variant: z.enum(['dark', 'light']).optional(),
+  isCustom: z.boolean().optional(),
   baseScheme: z.enum(['base16', 'base24']).default('base16'),
   tokens: z.record(z.string()),
   styleMode: z.enum(['glassmorphic', 'neobrutal', 'minimal', 'clay', 'custom']).default('glassmorphic'),
@@ -27,6 +30,16 @@ const createThemeSchema = z.object({
 themesRouter.get('/', async (c) => {
   const allThemes = await db.select().from(themes);
   return c.json(allThemes);
+});
+
+// Get custom themes only (for theme browser to merge with bundled themes)
+themesRouter.get('/custom', async (c) => {
+  const customThemes = await db
+    .select()
+    .from(themes)
+    .where(eq(themes.isCustom, true));
+
+  return c.json(customThemes);
 });
 
 // Get single theme
