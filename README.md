@@ -1,4 +1,4 @@
-# Homelab Dashboard
+# Highseat
 
 A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and RBAC.
 
@@ -93,7 +93,41 @@ npm run build
 npm start
 \`\`\`
 
-The Hono server will serve the compiled Angular app on port 3000.
+The Hono server will serve the compiled Angular app on port 3350.
+
+## Docker Deployment
+
+Highseat can be deployed using Docker for easier setup and portability.
+
+### Quick Docker Start
+
+```bash
+# Create environment file
+cp .env.example .env
+
+# Edit .env and set JWT_SECRET (required)
+nano .env
+
+# Build and start with Docker Compose
+docker-compose up -d
+
+# Access the application
+# http://localhost:3350
+```
+
+The default admin user will be created automatically:
+- Email: `admin@homelab.local`
+- Password: `admin123`
+
+For detailed Docker configuration, volume management, reverse proxy setup, and troubleshooting, see [DOCKER.md](DOCKER.md).
+
+### Docker Features
+
+- 🐳 Single container with frontend and backend
+- 💾 Persistent data volumes for database and uploads
+- 🔄 Automatic health checks and restart policies
+- 📊 Optional Docker host system monitoring
+- 🔒 Secure by default with JWT authentication
 
 ## Project Structure
 
