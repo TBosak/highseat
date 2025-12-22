@@ -11,6 +11,7 @@ A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and
 
 ## Features
 
+### Core Features
 - 📊 **Multi-Board System** - Organize services across multiple boards with tabs
 - 🎨 **Design Mode** - Customize layouts, colors, borders, and icons visually
 - 🌈 **Base16/Base24 Theming** - Multiple style modes (glassmorphic, neobrutal, minimal, clay)
@@ -19,6 +20,19 @@ A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and
 - 👥 **RBAC** - Role-based access control (Admin, Designer, Editor, Viewer)
 - 📱 **Responsive Grid** - Drag & drop cards with resize support
 - 🔌 **Service Catalogs** - Icon integration of popular self-hosted services
+
+### Widgets
+- 📝 **Note Widget** - Rich text editor with auto-save and formatting support
+- 🕐 **Clock Widget** - Digital or analog clock with customizable time formats
+- 💻 **System Metrics** - Real-time CPU, RAM, and disk usage monitoring
+- 🌐 **Network Stats** - Live network throughput and interface statistics
+- ⚙️ **Process Monitor** - Top running processes with CPU and memory usage
+- 🎬 **Plex Integration** - Now playing and recently added media from Plex
+- 🎞️ **Jellyfin Integration** - Now playing and recently added media from Jellyfin
+
+### Advanced Features
+- 🔄 **WebSocket Support** - Real-time system metrics updates
+- 🔍 **Service Discovery** - Automatic detection of local network services
 
 ## Quick Start
 
@@ -129,6 +143,46 @@ For detailed Docker configuration, volume management, reverse proxy setup, and t
 - 📊 Optional Docker host system monitoring
 - 🔒 Secure by default with JWT authentication
 
+## Widgets
+
+Highseat supports interactive widgets that can be added to your dashboard alongside traditional service cards.
+
+### Available Widgets
+
+**Clock Widget**
+- Digital or analog display
+- 12-hour or 24-hour format (digital only)
+- Optional seconds and date display
+- Default size: 3×2 (digital) or 2×3 (analog)
+
+**Note Widget**
+- Rich text editor with formatting toolbar
+- Auto-save every 2 seconds
+- Supports headings, lists, and text styling
+- Default size: 2×2, expandable
+
+**System Monitoring Widgets**
+- **System Metrics**: CPU, RAM, and disk usage with color-coded indicators
+- **Network Stats**: Real-time upload/download speeds and interface statistics
+- **Process Monitor**: Top 10 processes by CPU usage with memory information
+- All system widgets use WebSocket for real-time updates
+
+**Media Server Widgets**
+- **Plex**: Library stats, now playing, and recent additions (requires Plex server URL and token)
+- **Jellyfin**: Library stats, now playing, and recent additions (requires Jellyfin server URL and API key)
+- Auto-refresh every 10 seconds
+- Compact scrollable interface
+
+### Adding Widgets
+
+1. Click "Add Card" on any board
+2. Select "Widget" as the card type
+3. Choose your desired widget from the list
+4. Configure widget-specific settings (if applicable)
+5. Click "Add Card"
+
+Widgets are ordered by simplicity in the selection interface, with service-specific widgets (Plex, Jellyfin) appearing at the bottom.
+
 ## Project Structure
 
 ```
@@ -138,7 +192,8 @@ homelab-dash/
 │   │   ├── db/             # Database schema and migrations
 │   │   ├── routes/         # API route handlers
 │   │   ├── middleware/     # Auth and permission middleware
-│   │   ├── services/       # Business logic
+│   │   ├── services/       # Business logic (Plex, Jellyfin, system info, WebSocket)
+│   │   ├── workers/        # Background workers (system metrics)
 │   │   └── types/          # TypeScript type definitions
 │   └── drizzle/            # Database migrations
 ├── frontend/               # Angular application
@@ -147,61 +202,17 @@ homelab-dash/
 │   │   │   ├── core/      # Services, guards, interceptors
 │   │   │   ├── shared/    # Reusable components
 │   │   │   ├── features/  # Feature modules
+│   │   │   │   ├── widgets/  # Widget components (note, clock, system, media)
+│   │   │   │   └── ...
 │   │   │   └── ...
+│   │   └── public/
+│   │       ├── app-icons/  # Service icon catalog
+│   │       ├── base16/     # Base16 color schemes
+│   │       └── base24/     # Base24 color schemes
 │   └── dist/              # Build output
+├── docker-compose.yml     # Docker deployment configuration
 └── package.json           # Workspace configuration
 ```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login and get tokens
-- `POST /api/auth/refresh` - Refresh access token
-- `GET /api/auth/me` - Get current user info
-- `POST /api/auth/logout` - Logout and revoke refresh token
-
-### Boards
-- `GET /api/boards` - List all boards
-- `POST /api/boards` - Create new board
-- `GET /api/boards/:id` - Get board with tabs
-- `PATCH /api/boards/:id` - Update board
-- `DELETE /api/boards/:id` - Delete board
-
-### Tabs
-- `GET /api/tabs/board/:boardId` - List tabs for board
-- `POST /api/tabs` - Create new tab
-- `GET /api/tabs/:id` - Get tab with zones and cards
-- `PATCH /api/tabs/:id` - Update tab
-- `DELETE /api/tabs/:id` - Delete tab
-
-### Cards
-- `GET /api/cards/zone/:zoneId` - List cards in zone
-- `POST /api/cards` - Create new card
-- `GET /api/cards/:id` - Get card details
-- `PATCH /api/cards/:id` - Update card content
-- `PATCH /api/cards/:id/layout` - Update card layout
-- `PATCH /api/cards/:id/style` - Update card style (requires design permission)
-- `DELETE /api/cards/:id` - Delete card
-
-### Themes
-- `GET /api/themes` - List all themes
-- `POST /api/themes` - Create new theme (requires theme:edit)
-- `GET /api/themes/:id` - Get theme details
-- `PATCH /api/themes/:id` - Update theme
-- `DELETE /api/themes/:id` - Delete theme
-
-## Permissions
-
-- `board:view` - View boards
-- `board:edit` - Edit board structure and settings
-- `board:design` - Access design mode and card styling
-- `card:add` - Add new cards
-- `card:edit` - Edit card content
-- `card:delete` - Delete cards
-- `theme:edit` - Create and edit themes
-- `role:manage` - Manage user roles
-- `user:manage` - Manage users
 
 ## Default Roles
 
