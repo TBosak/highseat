@@ -460,6 +460,148 @@ textarea.input {
   }
 }
 
+// Neobrutal style overrides
+::ng-deep [data-style-mode="neobrutal"] {
+  // Table containers
+  .table-container {
+    border: 3px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 var(--text) !important;
+  }
+
+  // Table styling
+  .settings-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+
+    thead {
+      th {
+        border-bottom: 3px solid var(--text) !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 2px solid var(--base03) !important;
+
+        &:hover {
+          background: var(--base01) !important;
+          transform: translateX(2px);
+          transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        &:last-child {
+          border-bottom: none !important;
+        }
+      }
+    }
+  }
+
+  // Role and permission chips
+  .role-chip {
+    border: 2px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0 var(--text) !important;
+    font-weight: 700 !important;
+  }
+
+  .permission-chip {
+    border: 2px solid var(--base03) !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0 var(--base03) !important;
+    font-weight: 700 !important;
+
+    &.more {
+      border-color: var(--base0D) !important;
+      box-shadow: 2px 2px 0 var(--base0D) !important;
+
+      &:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 3px 3px 0 var(--base0D) !important;
+      }
+    }
+  }
+
+  // User avatar
+  .user-avatar {
+    border: 2px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0 var(--text) !important;
+  }
+
+  // System badge
+  .system-badge-inline {
+    border: 2px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0 var(--text) !important;
+    font-weight: 900 !important;
+  }
+
+  // Preferences section
+  .preferences-list {
+    border: 3px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 var(--text) !important;
+
+    .preference-item {
+      border: 2px solid var(--base03) !important;
+      border-radius: 0 !important;
+
+      &:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0 var(--base03) !important;
+      }
+    }
+  }
+
+  // Toggle switch
+  .toggle-switch {
+    .toggle-slider {
+      border: 2px solid var(--text) !important;
+      border-radius: 0 !important;
+      box-shadow: 2px 2px 0 var(--text) !important;
+
+      &::before {
+        border: 2px solid var(--text) !important;
+        border-radius: 0 !important;
+      }
+    }
+
+    input:checked + .toggle-slider {
+      border-color: var(--accent) !important;
+      box-shadow: 2px 2px 0 var(--accent) !important;
+    }
+  }
+
+  // Table action buttons
+  .btn-icon {
+    border: 3px solid var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0 var(--text) !important;
+    font-weight: 900;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--text) !important;
+      background: var(--base02) !important;
+    }
+
+    &.btn-danger {
+      border-color: var(--base08) !important;
+      box-shadow: 4px 4px 0 var(--base08) !important;
+
+      &:hover {
+        background: var(--base08) !important;
+        box-shadow: 6px 6px 0 var(--base08) !important;
+        color: #fff;
+      }
+    }
+  }
+}
+
 // Toggle switch component
 .toggle-switch {
   position: relative;

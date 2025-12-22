@@ -94,6 +94,11 @@
               [config]="getPlexConfig(widget.config)"
             ></app-plex-widget>
           }
+          @if (widget.type === 'jellyfin') {
+            <app-jellyfin-widget
+              [config]="getJellyfinConfig(widget.config)"
+            ></app-jellyfin-widget>
+          }
         }
       </div>
     }

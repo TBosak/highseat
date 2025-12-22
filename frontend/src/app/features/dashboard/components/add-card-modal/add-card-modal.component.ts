@@ -46,9 +46,20 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   faNetworkWired = faNetworkWired;
   faFilm = faFilm;
 
+  // Media server icons from catalog
+  plexIconUrl = computed(() => {
+    const themeVariant = this.themeService.themeVariant();
+    return this.iconCatalog.getIconForThemeVariant('plex', themeVariant) || '/app-icons/svg/plex.svg';
+  });
+
+  jellyfinIconUrl = computed(() => {
+    const themeVariant = this.themeService.themeVariant();
+    return this.iconCatalog.getIconForThemeVariant('jellyfin', themeVariant) || '/app-icons/svg/jellyfin.svg';
+  });
+
   // Card type
   cardType = signal<'regular' | 'widget'>('regular');
-  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex'>('note');
+  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin'>('note');
 
   // Form fields
   title = signal('');
@@ -58,6 +69,10 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   // Plex widget fields
   plexServerUrl = signal('');
   plexToken = signal('');
+
+  // Jellyfin widget fields
+  jellyfinServerUrl = signal('');
+  jellyfinApiKey = signal('');
 
   // Icon selection
   iconSource = signal<'catalog' | 'custom'>('catalog');
@@ -261,6 +276,13 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
           cardData.layoutMinW = 3;
           cardData.layoutMinH = 7;
           break;
+        case 'jellyfin':
+          cardData.title = 'Jellyfin Media Server';
+          cardData.layoutW = 3;
+          cardData.layoutH = 7;
+          cardData.layoutMinW = 3;
+          cardData.layoutMinH = 7;
+          break;
       }
 
       cardData.iconSource = 'catalog';
@@ -272,6 +294,13 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
       } else if (this.widgetType() === 'plex') {
         widgetConfig.serverUrl = this.plexServerUrl();
         widgetConfig.token = this.plexToken();
+        widgetConfig.showNowPlaying = true;
+        widgetConfig.showRecent = true;
+        widgetConfig.recentLimit = 10;
+        widgetConfig.refreshInterval = 10;
+      } else if (this.widgetType() === 'jellyfin') {
+        widgetConfig.serverUrl = this.jellyfinServerUrl();
+        widgetConfig.apiKey = this.jellyfinApiKey();
         widgetConfig.showNowPlaying = true;
         widgetConfig.showRecent = true;
         widgetConfig.recentLimit = 10;

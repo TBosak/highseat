@@ -95,7 +95,7 @@ export interface CardStyle {
 }
 
 export interface CardWidget {
-  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'custom';
+  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'custom';
   config: Record<string, any>;
 }
 
@@ -176,6 +176,63 @@ export interface PlexData {
     transcoderActiveVideoSessions: number;
   };
   stats: PlexLibraryStats;
+}
+
+export interface JellyfinWidgetConfig {
+  serverUrl: string; // Jellyfin server URL (e.g., http://192.168.1.100:8096)
+  apiKey: string; // Jellyfin API key
+  showNowPlaying?: boolean; // Show currently playing sessions (default: true)
+  showRecent?: boolean; // Show recently added media (default: true)
+  recentLimit?: number; // Number of recent items to show (default: 10)
+  refreshInterval?: number; // Refresh interval in seconds (default: 10)
+}
+
+export interface JellyfinSession {
+  Id: string;
+  UserId: string;
+  UserName: string;
+  NowPlayingItem?: {
+    Name: string;
+    Type: string;
+    SeriesName?: string;
+    SeasonName?: string;
+    IndexNumber?: number;
+    ParentIndexNumber?: number;
+    Id: string;
+  };
+  PlayState?: {
+    PositionTicks?: number;
+    IsPaused?: boolean;
+  };
+  imageUrl?: string | null;
+}
+
+export interface JellyfinRecentItem {
+  Id: string;
+  Name: string;
+  Type: string;
+  SeriesName?: string;
+  ProductionYear?: number;
+  PremiereDate?: string;
+  imageUrl?: string | null;
+}
+
+export interface JellyfinLibraryStats {
+  MovieCount: number;
+  SeriesCount: number;
+  EpisodeCount: number;
+  SongCount: number;
+}
+
+export interface JellyfinData {
+  sessions: JellyfinSession[];
+  recent: JellyfinRecentItem[];
+  info: {
+    ServerName: string;
+    Version: string;
+    OperatingSystem: string;
+  };
+  stats: JellyfinLibraryStats;
 }
 
 export interface SystemMetrics {

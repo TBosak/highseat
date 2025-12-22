@@ -1,8 +1,8 @@
-<div class="plex-widget">
-  @if (loading() && !plexData()) {
+<div class="jellyfin-widget">
+  @if (loading() && !jellyfinData()) {
     <div class="status-message">
       <fa-icon [icon]="faSpinner" [animation]="'spin'" class="spinner-icon"></fa-icon>
-      <span>Connecting to Plex...</span>
+      <span>Connecting to Jellyfin...</span>
     </div>
   } @else if (error()) {
     <div class="status-message error">
@@ -12,36 +12,36 @@
         Retry
       </button>
     </div>
-  } @else if (plexData()) {
-    <div class="plex-content">
-      <!-- Plex Header -->
-      <a [href]="config.serverUrl" target="_blank" rel="noopener noreferrer" class="plex-header">
-        <img [src]="plexLogoUrl()" alt="Plex" class="plex-logo" />
-        <span class="server-name">{{ plexData()!.info.name }}</span>
+  } @else if (jellyfinData()) {
+    <div class="jellyfin-content">
+      <!-- Jellyfin Header -->
+      <a [href]="config.serverUrl" target="_blank" rel="noopener noreferrer" class="jellyfin-header">
+        <img [src]="jellyfinLogoUrl()" alt="Jellyfin" class="jellyfin-logo" />
+        <span class="server-name">{{ jellyfinData()!.info.ServerName }}</span>
       </a>
 
       <!-- Library Stats -->
-      @if (plexData()!.stats) {
+      @if (jellyfinData()!.stats) {
         <div class="library-stats">
-          @if (plexData()!.stats.movies > 0) {
+          @if (jellyfinData()!.stats.MovieCount > 0) {
             <div class="stat-item">
               <fa-icon [icon]="faFilm" class="stat-icon"></fa-icon>
-              <span class="stat-value">{{ plexData()!.stats.movies }}</span>
+              <span class="stat-value">{{ jellyfinData()!.stats.MovieCount }}</span>
               <span class="stat-label">Movies</span>
             </div>
           }
-          @if (plexData()!.stats.shows > 0) {
+          @if (jellyfinData()!.stats.SeriesCount > 0) {
             <div class="stat-item">
               <fa-icon [icon]="faTv" class="stat-icon"></fa-icon>
-              <span class="stat-value">{{ plexData()!.stats.shows }}</span>
+              <span class="stat-value">{{ jellyfinData()!.stats.SeriesCount }}</span>
               <span class="stat-label">Shows</span>
             </div>
           }
-          @if (plexData()!.stats.music > 0) {
+          @if (jellyfinData()!.stats.SongCount > 0) {
             <div class="stat-item">
               <fa-icon [icon]="faMusic" class="stat-icon"></fa-icon>
-              <span class="stat-value">{{ plexData()!.stats.music }}</span>
-              <span class="stat-label">Artists</span>
+              <span class="stat-value">{{ jellyfinData()!.stats.SongCount }}</span>
+              <span class="stat-label">Songs</span>
             </div>
           }
         </div>
@@ -55,14 +55,16 @@
             Now Playing
           </h3>
 
-          @if (plexData()!.sessions.length > 0) {
+          @if (jellyfinData()!.sessions.length > 0) {
             <!-- First session with full details -->
-            @if (plexData()!.sessions[0]; as firstSession) {
+            @if (jellyfinData()!.sessions[0]; as firstSession) {
               <div class="primary-session">
-                @if (firstSession.thumb) {
+                @if (firstSession.imageUrl) {
                   <div class="session-thumb">
-                    <img [src]="getThumbnailUrl(firstSession.thumb)" [alt]="firstSession.title" />
-                    <div class="progress-bar" [style.width.%]="firstSession.progress"></div>
+                    <img [src]="firstSession.imageUrl" [alt]="firstSession.NowPlayingItem?.Name || ''" />
+                    @if (getProgress(firstSession) > 0) {
+                      <div class="progress-bar" [style.width.%]="getProgress(firstSession)"></div>
+                    }
                   </div>
                 }
                 <div class="session-details">
@@ -71,21 +73,18 @@
                     <div class="session-subtitle">{{ getSubtitle(firstSession) }}</div>
                   }
                   <div class="session-meta">
-                    <fa-icon [icon]="firstSession.state === 'playing' ? faPlay : faPause" class="meta-icon"></fa-icon>
-                    <span>{{ firstSession.user }}</span>
-                    @if (firstSession.transcoding) {
-                      <span class="badge">Transcoding</span>
-                    }
+                    <fa-icon [icon]="isPaused(firstSession) ? faPause : faPlay" class="meta-icon"></fa-icon>
+                    <span>{{ firstSession.UserName }}</span>
                   </div>
                 </div>
               </div>
             }
 
             <!-- Additional sessions count -->
-            @if (plexData()!.sessions.length > 1) {
+            @if (jellyfinData()!.sessions.length > 1) {
               <div class="additional-sessions">
                 <fa-icon [icon]="faPlay" class="additional-icon"></fa-icon>
-                <span>+{{ plexData()!.sessions.length - 1 }} more session{{ plexData()!.sessions.length - 1 > 1 ? 's' : '' }}</span>
+                <span>+{{ jellyfinData()!.sessions.length - 1 }} more session{{ jellyfinData()!.sessions.length - 1 > 1 ? 's' : '' }}</span>
               </div>
             }
           } @else {
@@ -99,25 +98,25 @@
       }
 
       <!-- Recently Added Section (scrollable) -->
-      @if (config.showRecent !== false && plexData()!.recent.length > 0) {
+      @if (config.showRecent !== false && jellyfinData()!.recent.length > 0) {
         <div class="section">
           <h3 class="section-title">
             <fa-icon [icon]="faFilm" class="title-icon"></fa-icon>
             Recently Added
           </h3>
           <div class="recent-list scrollable">
-            @for (item of plexData()!.recent; track item.key) {
+            @for (item of jellyfinData()!.recent; track item.Id) {
               <div class="recent-item">
-                @if (item.thumb) {
+                @if (item.imageUrl) {
                   <div class="recent-thumb">
-                    <img [src]="getThumbnailUrl(item.thumb)" [alt]="item.title" />
+                    <img [src]="item.imageUrl" [alt]="item.Name" />
                   </div>
                 }
                 <div class="recent-info">
-                  <div class="recent-title">{{ getDisplayTitle(item) }}</div>
+                  <div class="recent-title">{{ getRecentTitle(item) }}</div>
                   <div class="recent-meta">
-                    <fa-icon [icon]="getMediaIcon(item.type)" class="media-icon"></fa-icon>
-                    <span class="time-ago">{{ getTimeAgo(item.addedAt) }}</span>
+                    <fa-icon [icon]="getMediaIcon(item.Type)" class="media-icon"></fa-icon>
+                    <span class="time-ago">{{ getTimeAgo(item.PremiereDate) }}</span>
                   </div>
                 </div>
               </div>
@@ -127,7 +126,7 @@
       }
 
       <!-- Empty State -->
-      @if (plexData()!.sessions.length === 0 && plexData()!.recent.length === 0) {
+      @if (jellyfinData()!.sessions.length === 0 && jellyfinData()!.recent.length === 0) {
         <div class="empty-state">
           <fa-icon [icon]="faFilm" class="empty-icon"></fa-icon>
           <p>No recent activity</p>

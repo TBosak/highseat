@@ -55,6 +55,26 @@ body {
   line-height: 1.6;
 }
 
+/* Global Link Styles */
+a {
+  color: var(--base0D);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--base0C);
+    text-decoration: underline;
+  }
+
+  &:visited {
+    color: var(--base0E);
+  }
+
+  &:active {
+    color: var(--base0A);
+  }
+}
+
 /* Style Modes */
 [data-style-mode="glassmorphic"] {
 
@@ -246,6 +266,64 @@ body {
     &:focus {
       box-shadow: 4px 4px 0 var(--highlight) !important;
       border-color: var(--highlight) !important;
+    }
+  }
+
+  // GridStack items
+  .grid-stack-item {
+    .grid-stack-item-content {
+      border-radius: 0 !important;
+    }
+
+    // Design mode dragging
+    &.ui-draggable-dragging {
+      .dash-card {
+        transform: rotate(-2deg) !important;
+        box-shadow: 12px 12px 0 var(--accent) !important;
+        border-color: var(--accent) !important;
+      }
+    }
+
+    // Resizing handles
+    .ui-resizable-handle {
+      &::after {
+        background: var(--text) !important;
+        border: 2px solid var(--bg) !important;
+        border-radius: 0 !important;
+      }
+    }
+
+    .ui-resizable-se::after {
+      box-shadow: 2px 2px 0 var(--text) !important;
+    }
+  }
+
+  // Dashboard specific cards
+  .dash-card {
+    border-radius: 0 !important;
+
+    // Card toolbar (edit/delete buttons)
+    .card-toolbar {
+      .toolbar-btn {
+        border: 2px solid var(--text) !important;
+        border-radius: 0 !important;
+        box-shadow: 2px 2px 0 var(--text) !important;
+        font-weight: 900;
+
+        &:hover {
+          transform: translate(-1px, -1px);
+          box-shadow: 3px 3px 0 var(--text) !important;
+        }
+
+        &.toolbar-btn-danger {
+          border-color: var(--base08) !important;
+          box-shadow: 2px 2px 0 var(--base08) !important;
+
+          &:hover {
+            box-shadow: 3px 3px 0 var(--base08) !important;
+          }
+        }
+      }
     }
   }
 }

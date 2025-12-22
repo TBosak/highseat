@@ -88,8 +88,19 @@
               [class.active]="widgetType() === 'plex'"
               (click)="widgetType.set('plex')"
             >
-              <fa-icon [icon]="faFilm" class="widget-icon"></fa-icon>
+              <img [src]="plexIconUrl()" alt="Plex" class="widget-icon-img" />
               <strong>Plex</strong>
+              <span>Now playing and recent media</span>
+            </button>
+
+            <button
+              type="button"
+              class="widget-btn"
+              [class.active]="widgetType() === 'jellyfin'"
+              (click)="widgetType.set('jellyfin')"
+            >
+              <img [src]="jellyfinIconUrl()" alt="Jellyfin" class="widget-icon-img" />
+              <strong>Jellyfin</strong>
               <span>Now playing and recent media</span>
             </button>
           </div>
@@ -272,6 +283,42 @@
         </div>
       }
 
+      <!-- Jellyfin Configuration (only for Jellyfin widget) -->
+      @if (isWidgetCard() && widgetType() === 'jellyfin') {
+        <div class="form-group">
+          <label for="jellyfinServerUrl">Jellyfin Server URL *</label>
+          <div class="input-with-icon">
+            <fa-icon [icon]="faLink" class="input-icon"></fa-icon>
+            <input
+              id="jellyfinServerUrl"
+              type="url"
+              [value]="jellyfinServerUrl()"
+              (input)="jellyfinServerUrl.set($any($event.target).value)"
+              placeholder="http://192.168.1.100:8096"
+              required
+            />
+          </div>
+          <small class="input-hint">Your Jellyfin server URL (e.g., http://192.168.1.100:8096)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="jellyfinApiKey">Jellyfin API Key *</label>
+          <input
+            id="jellyfinApiKey"
+            type="password"
+            [value]="jellyfinApiKey()"
+            (input)="jellyfinApiKey.set($any($event.target).value)"
+            placeholder="Your Jellyfin API key"
+            required
+          />
+          <small class="input-hint">
+            <a href="https://jellyfin.org/docs/general/server/api-keys.html" target="_blank" rel="noopener noreferrer">
+              How to create a Jellyfin API key
+            </a>
+          </small>
+        </div>
+      }
+
       <!-- Widget Info (only for widget cards) -->
       @if (isWidgetCard()) {
         <div class="widget-info">
@@ -286,7 +333,7 @@
             <div class="info-card">
               <strong><fa-icon [icon]="faMicrochip"></fa-icon> System Metrics Widget</strong>
               <p>Displays real-time CPU, RAM, and Disk usage with color-coded indicators. Updates automatically every 2.5 seconds via WebSocket.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Green indicates normal usage, yellow is warning, and red is critical.</p>
+              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Usage levels are shown with three colors: normal (below 60%), warning (60-80%), and critical (above 80%).</p>
             </div>
           }
           @if (widgetType() === 'system-processes') {
@@ -305,8 +352,15 @@
           }
           @if (widgetType() === 'plex') {
             <div class="info-card">
-              <strong><fa-icon [icon]="faFilm"></fa-icon> Plex Widget</strong>
+              <strong><img [src]="plexIconUrl()" alt="Plex" class="info-icon" /> Plex Widget</strong>
               <p>Compact widget showing library stats (movies/TV shows), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.</p>
+              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Additional active sessions are shown as "+N more sessions" to keep the widget small.</p>
+            </div>
+          }
+          @if (widgetType() === 'jellyfin') {
+            <div class="info-card">
+              <strong><img [src]="jellyfinIconUrl()" alt="Jellyfin" class="info-icon" /> Jellyfin Widget</strong>
+              <p>Compact widget showing library stats (movies/TV shows/music), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.</p>
               <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Additional active sessions are shown as "+N more sessions" to keep the widget small.</p>
             </div>
           }

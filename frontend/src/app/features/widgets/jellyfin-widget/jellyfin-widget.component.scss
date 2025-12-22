@@ -1,4 +1,4 @@
-.plex-widget {
+.jellyfin-widget {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -47,14 +47,14 @@
   }
 }
 
-.plex-content {
+.jellyfin-content {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-// Plex Header
-.plex-header {
+// Jellyfin Header
+.jellyfin-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -71,7 +71,7 @@
     border-color: var(--base0D);
   }
 
-  .plex-logo {
+  .jellyfin-logo {
     height: 24px;
     width: auto;
     object-fit: contain;
