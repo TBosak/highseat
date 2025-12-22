@@ -131,7 +131,7 @@ For detailed Docker configuration, volume management, reverse proxy setup, and t
 
 ## Project Structure
 
-\`\`\`
+```
 homelab-dash/
 ├── backend/                 # Hono API server
 │   ├── src/
@@ -150,7 +150,7 @@ homelab-dash/
 │   │   │   └── ...
 │   └── dist/              # Build output
 └── package.json           # Workspace configuration
-\`\`\`
+```
 
 ## API Endpoints
 
@@ -209,10 +209,6 @@ homelab-dash/
 - **Editor** - Can view and edit board content
 - **Designer** - Can view, edit, and customize design
 - **Admin** - Full access to all features
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding new features.
 
 ## License
 
