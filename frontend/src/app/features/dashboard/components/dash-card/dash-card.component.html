@@ -99,6 +99,11 @@
               [config]="getJellyfinConfig(widget.config)"
             ></app-jellyfin-widget>
           }
+          @if (widget.type === 'clock') {
+            <app-clock-widget
+              [config]="getClockConfig(widget.config)"
+            ></app-clock-widget>
+          }
         }
       </div>
     }

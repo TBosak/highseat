@@ -41,6 +41,17 @@
             <button
               type="button"
               class="widget-btn"
+              [class.active]="widgetType() === 'clock'"
+              (click)="widgetType.set('clock')"
+            >
+              <fa-icon [icon]="faClock" class="widget-icon"></fa-icon>
+              <strong>Clock</strong>
+              <span>Customizable time display</span>
+            </button>
+
+            <button
+              type="button"
+              class="widget-btn"
               [class.active]="widgetType() === 'note'"
               (click)="widgetType.set('note')"
             >
@@ -63,23 +74,23 @@
             <button
               type="button"
               class="widget-btn"
-              [class.active]="widgetType() === 'system-processes'"
-              (click)="widgetType.set('system-processes')"
-            >
-              <fa-icon [icon]="faListCheck" class="widget-icon"></fa-icon>
-              <strong>Processes</strong>
-              <span>Top running processes</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
               [class.active]="widgetType() === 'system-network'"
               (click)="widgetType.set('system-network')"
             >
               <fa-icon [icon]="faNetworkWired" class="widget-icon"></fa-icon>
               <strong>Network</strong>
               <span>Network throughput and stats</span>
+            </button>
+
+            <button
+              type="button"
+              class="widget-btn"
+              [class.active]="widgetType() === 'system-processes'"
+              (click)="widgetType.set('system-processes')"
+            >
+              <fa-icon [icon]="faListCheck" class="widget-icon"></fa-icon>
+              <strong>Processes</strong>
+              <span>Top running processes</span>
             </button>
 
             <button
@@ -319,6 +330,79 @@
         </div>
       }
 
+      <!-- Clock Configuration (only for Clock widget) -->
+      @if (isWidgetCard() && widgetType() === 'clock') {
+        <div class="form-group">
+          <label>Clock Style</label>
+          <div class="clock-style-selector">
+            <button
+              type="button"
+              class="style-option"
+              [class.active]="clockStyle() === 'digital'"
+              (click)="clockStyle.set('digital')"
+            >
+              <fa-icon [icon]="faClock"></fa-icon>
+              <span>Digital</span>
+            </button>
+            <button
+              type="button"
+              class="style-option"
+              [class.active]="clockStyle() === 'analog'"
+              (click)="clockStyle.set('analog')"
+            >
+              <fa-icon [icon]="faClock"></fa-icon>
+              <span>Analog</span>
+            </button>
+          </div>
+        </div>
+
+        @if (clockStyle() === 'digital') {
+          <div class="form-group">
+            <label>Time Format</label>
+            <div class="clock-format-selector">
+              <button
+                type="button"
+                class="format-option"
+                [class.active]="clockFormat() === '12h'"
+                (click)="clockFormat.set('12h')"
+              >
+                12-Hour
+              </button>
+              <button
+                type="button"
+                class="format-option"
+                [class.active]="clockFormat() === '24h'"
+                (click)="clockFormat.set('24h')"
+              >
+                24-Hour
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="clockShowSeconds()"
+              (change)="clockShowSeconds.set(!clockShowSeconds())"
+            />
+            <span>Show Seconds</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="clockShowDate()"
+              (change)="clockShowDate.set(!clockShowDate())"
+            />
+            <span>Show Date</span>
+          </label>
+        </div>
+      }
+
       <!-- Widget Info (only for widget cards) -->
       @if (isWidgetCard()) {
         <div class="widget-info">
@@ -362,6 +446,13 @@
               <strong><img [src]="jellyfinIconUrl()" alt="Jellyfin" class="info-icon" /> Jellyfin Widget</strong>
               <p>Compact widget showing library stats (movies/TV shows/music), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.</p>
               <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Additional active sessions are shown as "+N more sessions" to keep the widget small.</p>
+            </div>
+          }
+          @if (widgetType() === 'clock') {
+            <div class="info-card">
+              <strong><fa-icon [icon]="faClock"></fa-icon> Clock Widget</strong>
+              <p>Displays the current time in digital or analog format. Choose between 12-hour or 24-hour format, toggle seconds display, and show/hide the date.</p>
+              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: The analog clock shows a traditional clock face with hour, minute, and optional second hands.</p>
             </div>
           }
         </div>

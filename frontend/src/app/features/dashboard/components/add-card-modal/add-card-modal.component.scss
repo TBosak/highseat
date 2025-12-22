@@ -213,7 +213,7 @@
   .icon-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 0.75rem;
+    gap: 1rem;
     max-height: 300px;
     overflow-y: auto;
     padding: 0.5rem;
@@ -349,7 +349,7 @@
 
 .modal-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   justify-content: flex-end;
   margin-top: 2rem;
   padding-top: 1.5rem;
@@ -360,7 +360,7 @@
 .card-type-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 1rem;
 
   .type-btn {
     padding: 1rem;
@@ -406,7 +406,7 @@
 .widget-type-selector {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 
   .widget-btn {
     padding: 1rem;
@@ -499,5 +499,82 @@
         font-style: italic;
       }
     }
+  }
+}
+
+// Clock widget configuration
+.clock-style-selector,
+.clock-format-selector {
+  display: flex;
+  gap: 0.5rem;
+
+  .style-option,
+  .format-option {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: var(--base01);
+    border: 1px solid var(--base02);
+    border-radius: 6px;
+    color: var(--text);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+
+    fa-icon {
+      font-size: 1.25rem;
+      color: var(--base0D);
+    }
+
+    &:hover {
+      background: var(--base02);
+      border-color: var(--base03);
+    }
+
+    &.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+
+      fa-icon {
+        color: #fff;
+      }
+    }
+  }
+
+  .format-option {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  margin-bottom: 0 !important;
+
+  &:hover {
+    background: var(--base01);
+  }
+
+  input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+  }
+
+  span {
+    font-weight: 500;
+    color: var(--text);
   }
 }

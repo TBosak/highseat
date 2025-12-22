@@ -1,0 +1,37 @@
+<div class="clock-widget">
+  <!-- Digital Clock -->
+  @if (isDigital()) {
+    <div class="digital-clock">
+      <div class="time">{{ timeString() }}</div>
+      @if (config.showDate) {
+        <div class="date">{{ dateString() }}</div>
+      }
+    </div>
+  }
+
+  <!-- Analog Clock -->
+  @if (isAnalog()) {
+    <div class="analog-clock">
+      <div class="clock-face">
+        <!-- Hour markers -->
+        @for (hour of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; track hour) {
+          <div class="hour-marker" [class.cardinal]="hour % 3 === 0" [style.transform]="'rotate(' + (hour * 30) + 'deg)'">
+            <div class="marker-line"></div>
+          </div>
+        }
+
+        <!-- Clock hands -->
+        <div class="hand hour-hand" [style.transform]="'rotate(' + hourRotation() + 'deg)'"></div>
+        <div class="hand minute-hand" [style.transform]="'rotate(' + minuteRotation() + 'deg)'"></div>
+        @if (config.showSeconds) {
+          <div class="hand second-hand" [style.transform]="'rotate(' + secondRotation() + 'deg)'"></div>
+        }
+        <div class="center-dot"></div>
+      </div>
+
+      @if (config.showDate) {
+        <div class="date">{{ dateString() }}</div>
+      }
+    </div>
+  }
+</div>

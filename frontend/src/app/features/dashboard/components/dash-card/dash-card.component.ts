@@ -14,12 +14,13 @@ import { SystemProcessesWidgetComponent } from '../../../widgets/system-processe
 import { SystemNetworkWidgetComponent } from '../../../widgets/system-network-widget/system-network-widget.component';
 import { PlexWidgetComponent } from '../../../widgets/plex-widget/plex-widget.component';
 import { JellyfinWidgetComponent } from '../../../widgets/jellyfin-widget/jellyfin-widget.component';
-import type { Card, CardStyle, CardWidget, NoteWidgetConfig, SystemMetricsWidgetConfig, SystemProcessesWidgetConfig, SystemNetworkWidgetConfig, PlexWidgetConfig, JellyfinWidgetConfig } from '../../../../core/models';
+import { ClockWidgetComponent } from '../../../widgets/clock-widget/clock-widget.component';
+import type { Card, CardStyle, CardWidget, NoteWidgetConfig, SystemMetricsWidgetConfig, SystemProcessesWidgetConfig, SystemNetworkWidgetConfig, PlexWidgetConfig, JellyfinWidgetConfig, ClockWidgetConfig } from '../../../../core/models';
 
 @Component({
   selector: 'app-dash-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, HasPermissionDirective, FontAwesomeModule, NoteWidgetComponent, SystemMetricsWidgetComponent, SystemProcessesWidgetComponent, SystemNetworkWidgetComponent, PlexWidgetComponent, JellyfinWidgetComponent],
+  imports: [CommonModule, FormsModule, HasPermissionDirective, FontAwesomeModule, NoteWidgetComponent, SystemMetricsWidgetComponent, SystemProcessesWidgetComponent, SystemNetworkWidgetComponent, PlexWidgetComponent, JellyfinWidgetComponent, ClockWidgetComponent],
   templateUrl: './dash-card.component.html',
   styleUrls: ['./dash-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -201,5 +202,9 @@ export class DashCardComponent {
 
   getJellyfinConfig(config: Record<string, any>): JellyfinWidgetConfig {
     return config as JellyfinWidgetConfig;
+  }
+
+  getClockConfig(config: Record<string, any>): ClockWidgetConfig {
+    return config as ClockWidgetConfig;
   }
 }

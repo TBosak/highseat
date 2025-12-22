@@ -95,7 +95,7 @@ export interface CardStyle {
 }
 
 export interface CardWidget {
-  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'custom';
+  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'clock' | 'custom';
   config: Record<string, any>;
 }
 
@@ -233,6 +233,14 @@ export interface JellyfinData {
     OperatingSystem: string;
   };
   stats: JellyfinLibraryStats;
+}
+
+export interface ClockWidgetConfig {
+  format: '12h' | '24h'; // 12-hour or 24-hour format
+  showSeconds: boolean; // Show seconds in the time display
+  showDate: boolean; // Show the date below the time
+  timezone?: string; // IANA timezone identifier (e.g., 'America/New_York'), defaults to local
+  style: 'digital' | 'analog'; // Clock display style
 }
 
 export interface SystemMetrics {

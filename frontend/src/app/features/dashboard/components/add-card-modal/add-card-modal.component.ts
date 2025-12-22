@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, signal, eff
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faTimes, faLink, faImage, faStickyNote, faLightbulb, faMicrochip, faListCheck, faNetworkWired, faFilm } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faTimes, faLink, faImage, faStickyNote, faLightbulb, faMicrochip, faListCheck, faNetworkWired, faFilm, faClock } from '@fortawesome/free-solid-svg-icons';
 import { IconCatalogService, IconCatalogEntry, IconCategory } from '../../../../core/services/icon-catalog.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { AddCardModalService } from '../../../../core/services/add-card-modal.service';
@@ -45,6 +45,7 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   faListCheck = faListCheck;
   faNetworkWired = faNetworkWired;
   faFilm = faFilm;
+  faClock = faClock;
 
   // Media server icons from catalog
   plexIconUrl = computed(() => {
@@ -59,7 +60,7 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
 
   // Card type
   cardType = signal<'regular' | 'widget'>('regular');
-  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin'>('note');
+  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'clock'>('note');
 
   // Form fields
   title = signal('');
@@ -73,6 +74,12 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   // Jellyfin widget fields
   jellyfinServerUrl = signal('');
   jellyfinApiKey = signal('');
+
+  // Clock widget fields
+  clockFormat = signal<'12h' | '24h'>('24h');
+  clockShowSeconds = signal(true);
+  clockShowDate = signal(true);
+  clockStyle = signal<'digital' | 'analog'>('digital');
 
   // Icon selection
   iconSource = signal<'catalog' | 'custom'>('catalog');
@@ -283,6 +290,20 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
           cardData.layoutMinW = 3;
           cardData.layoutMinH = 7;
           break;
+        case 'clock':
+          cardData.title = 'Clock';
+          if (this.clockStyle() === 'analog') {
+            cardData.layoutW = 2;
+            cardData.layoutH = 3;
+            cardData.layoutMinW = 2;
+            cardData.layoutMinH = 3;
+          } else {
+            cardData.layoutW = 3;
+            cardData.layoutH = 2;
+            cardData.layoutMinW = 3;
+            cardData.layoutMinH = 2;
+          }
+          break;
       }
 
       cardData.iconSource = 'catalog';
@@ -305,6 +326,11 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
         widgetConfig.showRecent = true;
         widgetConfig.recentLimit = 10;
         widgetConfig.refreshInterval = 10;
+      } else if (this.widgetType() === 'clock') {
+        widgetConfig.format = this.clockFormat();
+        widgetConfig.showSeconds = this.clockShowSeconds();
+        widgetConfig.showDate = this.clockShowDate();
+        widgetConfig.style = this.clockStyle();
       }
 
       cardData.widgets = [{
