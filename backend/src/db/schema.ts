@@ -53,6 +53,8 @@ export const boards = sqliteTable('boards', {
   themeId: text('theme_id').references(() => themes.id),
   defaultLayout: text('default_layout').notNull().default('grid'), // 'grid' | 'freeform'
   isLocked: integer('is_locked', { mode: 'boolean' }).default(false),
+  order: integer('order').notNull().default(0), // Order of boards (leftmost = 0 = home board)
+  icon: text('icon'), // FontAwesome icon name (e.g., 'faHome', 'faServer', etc.)
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())

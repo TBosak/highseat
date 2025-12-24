@@ -33,4 +33,8 @@ export class BoardService {
   lockBoard(boardId: string, locked: boolean): Observable<Board> {
     return this.updateBoard(boardId, { isLocked: locked });
   }
+
+  reorderBoards(boardIds: string[]): Observable<Board[]> {
+    return this.http.post<Board[]>(`${this.apiUrl}/reorder`, { boardIds });
+  }
 }

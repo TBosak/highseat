@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db } from '../db/index';
 import { boards, tabs, zones, cards } from '../db/schema';
 import { authMiddleware, requirePermission } from '../middleware/auth.middleware';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { AuthEnv, type JWTPayload } from '../types';
 
 const boardsRouter = new Hono<AuthEnv>();
@@ -20,7 +20,8 @@ const createBoardSchema = z.object({
 const updateBoardSchema = z.object({
   name: z.string().min(1).optional(),
   themeId: z.string().optional(),
-  isLocked: z.boolean().optional()
+  isLocked: z.boolean().optional(),
+  icon: z.string().optional()
 });
 
 // Get all boards for current user
@@ -29,7 +30,8 @@ boardsRouter.get('/', requirePermission('board:view'), async (c) => {
 
   const userBoards = await db
     .select()
-    .from(boards);
+    .from(boards)
+    .orderBy(asc(boards.order));
     // .where(eq(boards.createdBy, user.userId));
 
   return c.json(userBoards);
@@ -114,6 +116,32 @@ boardsRouter.patch('/:boardId', requirePermission('board:edit'), zValidator('jso
   }
 
   return c.json(board);
+});
+
+// Reorder boards
+const reorderBoardsSchema = z.object({
+  boardIds: z.array(z.string())
+});
+
+boardsRouter.post('/reorder', requirePermission('board:edit'), zValidator('json', reorderBoardsSchema), async (c) => {
+  const user = c.get('user') as JWTPayload;
+  const { boardIds } = c.req.valid('json');
+
+  // Update each board's order based on its position in the array
+  for (let i = 0; i < boardIds.length; i++) {
+    await db
+      .update(boards)
+      .set({ order: i, updatedAt: new Date() })
+      .where(eq(boards.id, boardIds[i]));
+  }
+
+  // Return updated boards
+  const updatedBoards = await db
+    .select()
+    .from(boards)
+    .orderBy(asc(boards.order));
+
+  return c.json(updatedBoards);
 });
 
 // Delete board

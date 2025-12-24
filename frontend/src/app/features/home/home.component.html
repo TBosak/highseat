@@ -15,13 +15,21 @@
 
       <!-- Board Tabs (only show if multiple boards) -->
       @if (boards().length > 1) {
-        <nav class="board-tabs">
+        <nav class="board-tabs" cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="onBoardTabDrop($event)">
           @for (board of boards(); track board.id) {
             <button
               class="board-tab"
               [class.active]="selectedBoardSlug() === board.slug"
+              [class.home-board]="isHomeBoard(board)"
               (click)="selectBoard(board)"
+              (contextmenu)="onBoardTabRightClick($event, board)"
+              cdkDrag
             >
+              @if (getIconForBoard(board)) {
+                <fa-icon [icon]="getIconForBoard(board)!" class="board-icon"></fa-icon>
+              } @else if (isHomeBoard(board)) {
+                <fa-icon [icon]="faHome" class="home-icon"></fa-icon>
+              }
               {{ board.name }}
             </button>
           }
@@ -119,6 +127,14 @@
         (servicesSelected)="handleServicesDiscovered($event)"
         (cancelled)="serviceDiscoveryModal.close()"
       ></app-service-discovery-modal>
+    }
+
+    <!-- Icon Picker Modal -->
+    @if (iconPickerModal.showModal()) {
+      <app-icon-picker-modal
+        (iconSelected)="handleIconSelected($event)"
+        (cancelled)="iconPickerModal.close()"
+      ></app-icon-picker-modal>
     }
   }
 </div>

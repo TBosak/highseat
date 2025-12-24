@@ -21,6 +21,8 @@ export interface Board {
   themeId?: string;
   defaultLayout: 'grid' | 'freeform';
   isLocked: boolean;
+  order: number;
+  icon?: string;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

@@ -67,11 +67,18 @@
   border: 1px solid var(--base02);
   border-radius: 20px;
   color: var(--text-muted);
-  cursor: pointer;
+  cursor: grab;
   transition: all 0.2s ease;
   white-space: nowrap;
   font-weight: 500;
   font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &:hover {
     background: var(--base02);
@@ -87,6 +94,41 @@
     font-weight: 600;
     box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 40%, transparent);
   }
+
+  .board-icon,
+  .home-icon {
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  &.home-board {
+    border: 2px solid var(--base0B);
+
+    .home-icon {
+      color: var(--base0B);
+    }
+
+    &.active .home-icon {
+      color: #ffffff;
+    }
+  }
+
+  &.cdk-drag-preview {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0.8;
+  }
+
+  &.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.board-tabs.cdk-drop-list-dragging .board-tab:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
 }
 
 .nav-right {

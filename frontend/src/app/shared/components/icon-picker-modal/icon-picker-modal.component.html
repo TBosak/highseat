@@ -1,0 +1,52 @@
+<div class="modal-overlay" (click)="cancel()">
+  <div class="modal card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Select Board Icon</h2>
+      <button class="btn btn-sm btn-secondary" (click)="cancel()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search icons... (e.g., home, server, cloud)"
+          [value]="searchQuery()"
+          (input)="updateSearch($any($event.target).value)"
+          autofocus
+        />
+      </div>
+    </div>
+
+    <!-- Icon Grid -->
+    <div class="icon-grid-container">
+      @if (filteredIcons().length > 0) {
+        <div class="icon-grid">
+          @for (iconItem of filteredIcons(); track iconItem.name) {
+            <button
+              class="icon-option"
+              (click)="selectIcon(iconItem.name)"
+              [title]="iconItem.name"
+            >
+              <fa-icon [icon]="iconItem.icon" class="icon-preview"></fa-icon>
+              <span class="icon-name">{{ iconItem.name.replace('fa', '') }}</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <p>No icons found matching "{{ searchQuery() }}"</p>
+        </div>
+      }
+    </div>
+
+    <!-- Footer with count -->
+    <div class="modal-footer">
+      <span class="icon-count">{{ filteredIcons().length }} icons</span>
+    </div>
+  </div>
+</div>
