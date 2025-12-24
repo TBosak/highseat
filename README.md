@@ -1,6 +1,6 @@
 # Highseat
 
-A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and RBAC.
+A self-hosted, highly customizable grid-based homelab dashboard with tabs, design mode, Base16 theming, and RBAC.
 
 ## Stack
 
