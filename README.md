@@ -1,13 +1,13 @@
 # Highseat
 
-A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and RBAC.
+A highly customizable grid-based homelab dashboard with tabs, design mode, Base16 theming, and RBAC.
 
 ## Stack
 
 - **Frontend:** Angular (latest) with standalone components, Signals, and Angular CDK
 - **Backend:** Bun runtime with Hono framework
 - **Database:** SQLite with Drizzle ORM
-- **UI:** Angular CDK DragDrop, CSS Grid, and highly customizable themes
+- **UI:** Modern, theme-driven dashboard interface
 
 ## Features
 
@@ -45,7 +45,7 @@ A self-hosted, grid-based homelab dashboard with tabs, design mode, theming, and
 
 1. Clone the repository and install dependencies:
 
-\`\`\`bash
+```bash
 # Install root dependencies
 npm install
 
@@ -56,56 +56,52 @@ bun install
 # Install frontend dependencies
 cd ../frontend
 npm install
-\`\`\`
+```
 
 2. Set up the backend environment:
 
-\`\`\`bash
+```bash
 cd backend
 cp .env.example .env
 # Edit .env and set your JWT_SECRET
-\`\`\`
+```
 
 3. Initialize the database:
 
-\`\`\`bash
+```bash
 cd backend
 bun run db:migrate
 bun run db:seed
-\`\`\`
-
-This will create an admin user:
-- Email: `admin@homelab.local`
-- Password: `admin123`
+```
 
 ### Development
 
 Run both frontend and backend in development mode:
 
-\`\`\`bash
+```bash
 # From project root
 npm run dev
-\`\`\`
+```
 
 Or run them separately:
 
-\`\`\`bash
+```bash
 # Backend only (port 3350)
 npm run dev:backend
 
 # Frontend only (port 4200)
 npm run dev:frontend
-\`\`\`
+```
 
 ### Production Build
 
-\`\`\`bash
+```bash
 # Build everything
 npm run build
 
 # Start production server
 npm start
-\`\`\`
+```
 
 The Hono server will serve the compiled Angular app on port 3350.
 
