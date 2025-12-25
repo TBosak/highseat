@@ -1,6 +1,11 @@
+<span align="center">
+<img width="200px" height="200px" src="https://github.com/TBosak/highseat/blob/main/frontend/public/header.png?raw=true">
+
 # Highseat
 
-A highly customizable grid-based homelab dashboard with tabs, design mode, Base16 theming, and RBAC.
+A highly customizable grid-based homelab dashboard.
+
+</span>
 
 ## Stack
 
