@@ -6,7 +6,7 @@
 
 </p>
 
-A highly customizable grid-based homelab dashboard.
+<p align="center">A highly customizable grid-based homelab dashboard.</p>
 
 
 
