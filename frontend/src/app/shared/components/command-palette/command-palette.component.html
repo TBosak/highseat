@@ -1,0 +1,74 @@
+<div class="palette-overlay" (click)="close()">
+  <div class="palette-container" (click)="$event.stopPropagation()">
+    <!-- Search Input -->
+    <div class="search-input-wrapper">
+      <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search boards, cards, settings... or try →"
+        [value]="searchQuery()"
+        (input)="onSearchInput($any($event.target).value)"
+        autofocus
+      />
+      <div class="keyboard-hint">
+        <kbd>ESC</kbd> to close
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-container">
+      @if (searchResults().length > 0) {
+        @for (group of searchResults(); track trackByGroup($index, group); let groupIndex = $index) {
+          <div class="result-group">
+            <div class="group-label">{{ group.label }}</div>
+            @for (result of group.results; track trackByResult($index, result); let resultIndex = $index) {
+              <button
+                class="result-item"
+                [class.selected]="getResultIndex(groupIndex, resultIndex) === selectedIndex()"
+                (click)="selectResult(result)"
+                (mouseenter)="selectedIndex.set(getResultIndex(groupIndex, resultIndex))"
+              >
+                <div class="result-icon">
+                  <fa-icon [icon]="getIcon(result.icon)!"></fa-icon>
+                </div>
+                <div class="result-content">
+                  <div class="result-title">{{ result.title }}</div>
+                  @if (result.breadcrumb) {
+                    <div class="result-subtitle">{{ result.breadcrumb }}</div>
+                  } @else if (result.subtitle) {
+                    <div class="result-subtitle">{{ result.subtitle }}</div>
+                  }
+                </div>
+                <div class="result-arrow">
+                  <fa-icon [icon]="faChevronRight"></fa-icon>
+                </div>
+              </button>
+            }
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <fa-icon [icon]="faSearch" class="empty-icon"></fa-icon>
+          <p>No results found for "{{ searchQuery() }}"</p>
+          <small>Try searching for boards or actions</small>
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="palette-footer">
+      <div class="footer-hints">
+        <span class="hint">
+          <kbd>↑</kbd><kbd>↓</kbd> Navigate
+        </span>
+        <span class="hint">
+          <kbd>Enter</kbd> Select
+        </span>
+        <span class="hint">
+          <kbd>ESC</kbd> Close
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

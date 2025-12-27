@@ -1,8 +1,8 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, ChangeDetectionStrategy, HostListener, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCog, faPlus, faSpinner, faPalette, faRightFromBracket, faBars, faPencil, faImage, faNetworkWired, faHome, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faPlus, faSpinner, faPalette, faRightFromBracket, faBars, faPencil, faImage, faNetworkWired, faHome, faSearch, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import * as solidIcons from '@fortawesome/free-solid-svg-icons';
 import { CdkDrag, CdkDropList, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { BoardService } from '../../core/services/board.service';
@@ -13,34 +13,41 @@ import { AddCardModalService } from '../../core/services/add-card-modal.service'
 import { BackgroundSettingsModalService } from '../../core/services/background-settings-modal.service';
 import { ServiceDiscoveryModalService } from '../../core/services/service-discovery-modal.service';
 import { IconPickerModalService } from '../../core/services/icon-picker-modal.service';
+import { CommandPaletteService } from '../../core/services/command-palette.service';
+import { BoardNavigationService } from '../../core/services/board-navigation.service';
+import { CardNavigationService } from '../../core/services/card-navigation.service';
 import { IconCatalogService } from '../../core/services/icon-catalog.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
 import { BoardViewComponent } from '../dashboard/board-view/board-view.component';
 import { ServiceDiscoveryModalComponent, type DiscoveredService } from '../dashboard/components/service-discovery-modal/service-discovery-modal.component';
 import { IconPickerModalComponent } from '../../shared/components/icon-picker-modal/icon-picker-modal.component';
+import { CommandPaletteComponent } from '../../shared/components/command-palette/command-palette.component';
 import type { Board } from '../../core/models';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule, HasPermissionDirective, BoardViewComponent, ServiceDiscoveryModalComponent, IconPickerModalComponent, CdkDrag, CdkDropList],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, HasPermissionDirective, BoardViewComponent, ServiceDiscoveryModalComponent, IconPickerModalComponent, CommandPaletteComponent, CdkDrag, CdkDropList],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private boardService = inject(BoardService);
   private authService = inject(AuthService);
   private cardService = inject(CardService);
   private iconCatalog = inject(IconCatalogService);
   private themeService = inject(ThemeService);
   private router = inject(Router);
+  private boardNavigation = inject(BoardNavigationService);
+  private cardNavigation = inject(CardNavigationService);
   designMode = inject(DesignModeService);
   addCardModal = inject(AddCardModalService);
   backgroundModal = inject(BackgroundSettingsModalService);
   serviceDiscoveryModal = inject(ServiceDiscoveryModalService);
   iconPickerModal = inject(IconPickerModalService);
+  commandPalette = inject(CommandPaletteService);
 
   // Icons
   faCog = faCog;
@@ -53,6 +60,7 @@ export class HomeComponent implements OnInit {
   faImage = faImage;
   faNetworkWired = faNetworkWired;
   faHome = faHome;
+  faSearch = faSearch;
 
   boards = signal<Board[]>([]);
   selectedBoardSlug = signal<string | null>(null);
@@ -67,8 +75,45 @@ export class HomeComponent implements OnInit {
     return this.boards().find(b => b.slug === slug) || null;
   });
 
+  // Effect to watch for board navigation requests from other components
+  private boardNavigationEffect = effect(() => {
+    const requestedSlug = this.boardNavigation.selectedBoardSlug();
+    if (requestedSlug) {
+      this.selectedBoardSlug.set(requestedSlug);
+      this.boardNavigation.clearSelection(); // Clear after handling
+    }
+  });
+
+  // Effect to watch for card navigation requests
+  private cardNavigationEffect = effect(() => {
+    const target = this.cardNavigation.targetCard();
+    if (target) {
+      // First, navigate to the board
+      this.selectedBoardSlug.set(target.boardSlug);
+
+      // Then scroll to the card after a short delay to ensure the board is rendered
+      setTimeout(() => {
+        this.cardNavigation.scrollToCard(target.cardId);
+        this.cardNavigation.clearTarget();
+      }, 300);
+    }
+  });
+
   ngOnInit(): void {
     this.loadBoards();
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup if needed
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardShortcut(event: KeyboardEvent): void {
+    // Ctrl+K or Cmd+K to open command palette
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+      event.preventDefault();
+      this.commandPalette.toggle();
+    }
   }
 
   loadBoards(): void {
@@ -76,6 +121,7 @@ export class HomeComponent implements OnInit {
     this.boardService.getBoards().subscribe({
       next: (boards) => {
         this.boards.set(boards);
+
         // Select first board by default
         if (boards.length > 0 && !this.selectedBoardSlug()) {
           this.selectedBoardSlug.set(boards[0].slug);

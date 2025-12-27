@@ -1,8 +1,8 @@
 <div class="system-processes-widget">
-  @if (connectionState() === 'connecting') {
+  @if (connectionState() === 'connecting' || processes().length === 0) {
     <div class="status-message connecting">
       <div class="spinner"></div>
-      <span>Connecting to system monitor...</span>
+      <span>{{ connectionState() === 'connecting' ? 'Connecting to system monitor...' : 'Loading processes...' }}</span>
     </div>
   } @else if (connectionState() === 'disconnected' || connectionState() === 'error') {
     <div class="status-message error">

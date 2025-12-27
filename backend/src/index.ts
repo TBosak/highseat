@@ -16,6 +16,7 @@ import servicesRoutes from './routes/services.routes';
 import systemRoutes from './routes/system.routes';
 import plexRoutes from './routes/plex.routes';
 import jellyfinRoutes from './routes/jellyfin.routes';
+import settingsRoutes from './routes/settings.routes';
 import { securityHeaders } from './middleware/security.middleware';
 import { websocketService } from './services/websocket.service';
 import type { AuthEnv } from './types';
@@ -110,6 +111,7 @@ app.route('/api/services', servicesRoutes);
 app.route('/api/system', systemRoutes);
 app.route('/api/plex', plexRoutes);
 app.route('/api/jellyfin', jellyfinRoutes);
+app.route('/api/settings', settingsRoutes);
 
 // Serve uploaded files
 app.use('/uploads/*', serveStatic({ root: './' }));

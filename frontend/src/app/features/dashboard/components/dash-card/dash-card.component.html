@@ -1,4 +1,4 @@
-<div [class]="getCardClasses().join(' ')" [ngStyle]="getCardStyles()" [class.has-widgets]="hasWidgets()" (click)="handleCardClick()">
+<div [id]="'card-' + card.id" [class]="getCardClasses().join(' ')" [ngStyle]="getCardStyles()" [class.has-widgets]="hasWidgets()" (click)="handleCardClick()">
   <!-- Save State Indicator (for note widgets) -->
   @if (hasWidgets() && noteSaveState() !== 'idle') {
     <div class="save-state-indicator">

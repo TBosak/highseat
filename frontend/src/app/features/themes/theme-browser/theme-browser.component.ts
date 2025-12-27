@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,7 +45,6 @@ export class ThemeBrowserComponent implements OnInit, OnDestroy {
   selectedSystem = signal<'all' | 'base16' | 'base24'>('all');
   selectedStyleMode = signal<StyleMode>('minimal');
   previewTheme = signal<ThemeDefinition | null>(null);
-  showStyleModeSelector = signal(false);
   showWizard = signal(false);
 
   // Computed filtered themes
@@ -122,40 +121,16 @@ export class ThemeBrowserComponent implements OnInit, OnDestroy {
   // Gap: 24px
   readonly virtualScrollItemSize = 264;
 
-  // Style mode options
-  styleModes: { value: StyleMode; label: string }[] = [
-    { value: 'minimal', label: 'Minimal' },
-    { value: 'glassmorphic', label: 'Glassmorphic' },
-    { value: 'neobrutal', label: 'Neobrutal' },
-    { value: 'clay', label: 'Clay' }
-  ];
-
-  constructor() {
-    // Watch for style mode changes and update the current theme
-    effect(() => {
-      const styleMode = this.selectedStyleMode();
-
-      // Use untracked to read current theme without subscribing to it
-      // This prevents infinite loops when we update the theme
-      untracked(() => {
-        const currentTheme = this.themeService.theme();
-
-        // Only update if theme exists and style mode is different
-        if (currentTheme && currentTheme.styleMode !== styleMode) {
-          // Update the current theme with the new style mode
-          this.themeService.applyTheme({
-            ...currentTheme,
-            styleMode
-          });
-        }
-      });
-    });
-  }
-
   ngOnInit(): void {
     this.loadThemes();
     this.loadPreviewState();
     this.setupViewportTracking();
+
+    // Initialize style mode from user's preference
+    const user = this.authService.user();
+    if (user?.preferredStyleMode) {
+      this.selectedStyleMode.set(user.preferredStyleMode);
+    }
   }
 
   ngOnDestroy(): void {

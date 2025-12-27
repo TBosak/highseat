@@ -55,6 +55,7 @@ export const boards = sqliteTable('boards', {
   isLocked: integer('is_locked', { mode: 'boolean' }).default(false),
   order: integer('order').notNull().default(0), // Order of boards (leftmost = 0 = home board)
   icon: text('icon'), // FontAwesome icon name (e.g., 'faHome', 'faServer', etc.)
+  customCss: text('custom_css'), // Custom CSS for this board
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
@@ -138,6 +139,14 @@ export const refreshTokens = sqliteTable('refresh_tokens', {
   // Index for token cleanup queries that delete expired tokens
   expiresAtIdx: index('idx_refresh_tokens_expires_at').on(table.expiresAt)
 }));
+
+// App settings table (global settings)
+export const appSettings = sqliteTable('app_settings', {
+  id: text('id').primaryKey().default('global'),
+  globalCustomCss: text('global_custom_css'), // Global custom CSS applied to all boards
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+});
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

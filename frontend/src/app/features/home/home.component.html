@@ -38,6 +38,11 @@
 
       <!-- User Actions -->
       <div class="nav-right">
+        <!-- Search Button -->
+        <button class="btn btn-secondary" (click)="commandPalette.open()" title="Search (Ctrl+K)">
+          <fa-icon [icon]="faSearch" class="icon-sm"></fa-icon>
+        </button>
+
         <!-- Add Card/Service Discovery Menu (only in design mode) -->
         @if (designMode.isDesignMode()) {
           <div class="menu-container" *hasPermission="'card:add'">
@@ -135,6 +140,11 @@
         (iconSelected)="handleIconSelected($event)"
         (cancelled)="iconPickerModal.close()"
       ></app-icon-picker-modal>
+    }
+
+    <!-- Command Palette -->
+    @if (commandPalette.isOpen()) {
+      <app-command-palette></app-command-palette>
     }
   }
 </div>

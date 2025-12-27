@@ -21,7 +21,8 @@ const updateBoardSchema = z.object({
   name: z.string().min(1).optional(),
   themeId: z.string().optional(),
   isLocked: z.boolean().optional(),
-  icon: z.string().optional()
+  icon: z.string().optional(),
+  customCss: z.string().nullable().optional()
 });
 
 // Get all boards for current user

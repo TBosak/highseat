@@ -15,7 +15,8 @@
     "start": "ng serve --proxy-config proxy.conf.json",
     "dev": "ng serve --proxy-config proxy.conf.json",
     "prebuild": "concurrently \"npm run build:icons\" \"npm run consolidate:themes\"",
-    "build": "ng build --output-path=dist/browser || exit 0",
+    "build": "npm run prebuild && ng build --output-path=dist/browser",
+    "build:prod": "ng build --configuration production --output-path=dist/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

@@ -1,0 +1,72 @@
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Board Settings: {{ board.name }}</h2>
+      <button class="btn-close" (click)="close()" title="Close">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Icon Selection Section -->
+      <section class="settings-section">
+        <h3>Board Icon</h3>
+        <p class="section-description">Choose an icon for the board tab</p>
+
+        <div class="icon-search">
+          <input
+            type="text"
+            class="input"
+            placeholder="Search icons..."
+            [value]="iconSearchQuery()"
+            (input)="iconSearchQuery.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="icon-grid">
+          @for (iconItem of filteredIcons; track iconItem.name) {
+            <button
+              class="icon-option"
+              [class.selected]="selectedIcon() === iconItem.name"
+              (click)="selectIcon(iconItem.name)"
+              [title]="iconItem.name"
+            >
+              <fa-icon [icon]="iconItem.icon"></fa-icon>
+            </button>
+          }
+        </div>
+
+        @if (filteredIcons.length === 0) {
+          <p class="empty-message">No icons found</p>
+        }
+      </section>
+
+      <!-- Custom CSS Section -->
+      <section class="settings-section">
+        <h3>Custom CSS</h3>
+        <p class="section-description">Add custom CSS for this board only</p>
+
+        <app-css-editor
+          [css]="customCss()"
+          [label]="'Board Custom CSS'"
+          [helpText]="'CSS applied only to this board. Overrides global CSS.'"
+          [placeholder]="'/* Board-specific CSS */\n.dash-card {\n  /* your styles */\n}'"
+          [examples]="cssExamples"
+          (cssChange)="onCssChange($event)"
+          (save)="save()"
+          (reset)="resetCss()"
+        ></app-css-editor>
+      </section>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="close()">
+        <span>Cancel</span>
+      </button>
+      <button class="btn btn-primary" (click)="save()" [disabled]="cssLoading()">
+        <fa-icon [icon]="faSave" class="icon-sm"></fa-icon>
+        <span>{{ cssLoading() ? 'Saving...' : 'Save Changes' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,13 +8,17 @@ import { BoardService } from '../../core/services/board.service';
 import { UserService, CreateUserData, UpdateUserData } from '../../core/services/user.service';
 import { RoleService, Role, CreateRoleData, UpdateRoleData } from '../../core/services/role.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SettingsService } from '../../core/services/settings.service';
+import { CustomCssService } from '../../core/services/custom-css.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { CssEditorComponent } from '../../shared/components/css-editor/css-editor.component';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
-import type { Board, User, Permission } from '../../core/models';
+import type { Board, User, Permission, StyleMode } from '../../core/models';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, HasPermissionDirective],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, HasPermissionDirective, CssEditorComponent],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -24,6 +28,9 @@ export class SettingsComponent implements OnInit {
   private userService = inject(UserService);
   private roleService = inject(RoleService);
   private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
+  private customCssService = inject(CustomCssService);
+  private themeService = inject(ThemeService);
   private router = inject(Router);
 
   // Icons
@@ -86,17 +93,67 @@ export class SettingsComponent implements OnInit {
   // Expanded permissions tracking
   expandedPermissions = signal<Set<string>>(new Set());
 
+  // Global Custom CSS
+  globalCustomCss = signal<string>('');
+  cssLoading = signal(false);
+  cssExamples = [
+    `/* Gradient cards */\n.dash-card {\n  background: linear-gradient(\n    135deg,\n    var(--base01) 0%,\n    var(--base02) 100%\n  ) !important;\n  border: 1px solid var(--base03);\n}`,
+    `/* Rainbow border animation */\n@keyframes rainbow-border {\n  0% { border-color: #ff0000; }\n  16% { border-color: #ff8800; }\n  33% { border-color: #ffff00; }\n  50% { border-color: #00ff00; }\n  66% { border-color: #0088ff; }\n  83% { border-color: #8800ff; }\n  100% { border-color: #ff0000; }\n}\n\n.dash-card {\n  border: 3px solid;\n  animation: rainbow-border 6s linear infinite;\n}`,
+    `/* Holographic effect */\n.dash-card {\n  position: relative;\n  background: linear-gradient(\n    135deg,\n    rgba(255, 0, 255, 0.1) 0%,\n    rgba(0, 255, 255, 0.1) 100%\n  ) !important;\n  border: 1px solid rgba(255, 255, 255, 0.2);\n}\n\n.dash-card::before {\n  content: '';\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: linear-gradient(\n    45deg,\n    transparent 30%,\n    rgba(255, 255, 255, 0.1) 50%,\n    transparent 70%\n  );\n  background-size: 200% 200%;\n  animation: shimmer 3s infinite;\n  pointer-events: none;\n  border-radius: inherit;\n}\n\n@keyframes shimmer {\n  0% { background-position: -200% 0; }\n  100% { background-position: 200% 0; }\n}`,
+    `/* Rounded corners everywhere */\n.dash-card,\n.btn,\n.input {\n  border-radius: 16px !important;\n}`
+  ];
+
+  // Design Style (Style Mode)
+  selectedStyleMode = signal<StyleMode>('minimal');
+  styleModeOptions: { value: StyleMode; label: string; description: string }[] = [
+    { value: 'minimal', label: 'Minimal', description: 'Clean and simple design with subtle shadows' },
+    { value: 'glassmorphic', label: 'Glassmorphic', description: 'Frosted glass effect with blur and transparency' },
+    { value: 'neobrutal', label: 'Neobrutal', description: 'Bold borders and high contrast colors' },
+    { value: 'clay', label: 'Clay', description: 'Soft, rounded shapes with inner shadows' }
+  ];
+
   ngOnInit(): void {
     this.loadBoards();
     this.loadUsers();
     this.loadRoles();
 
-    // Initialize hideLogo from user data
+    // Load global CSS but don't wait for it
+    // Using setTimeout to make it non-blocking
+    setTimeout(() => this.loadGlobalCss(), 0);
+
+    // Initialize user preferences from user data
     const currentUser = this.user();
     if (currentUser) {
       this.hideLogo.set(currentUser.hideLogo || false);
+      this.selectedStyleMode.set(currentUser.preferredStyleMode || 'minimal');
     }
   }
+
+  // CSS injection effect - applies CSS in real-time when it changes
+  private cssInjectionEffect = effect(() => {
+    const css = this.globalCustomCss();
+    if (css !== null && css !== undefined) {
+      this.customCssService.injectGlobalCss(css);
+    }
+  });
+
+  // Style mode effect - applies style mode when it changes
+  private styleModeEffect = effect(() => {
+    const styleMode = this.selectedStyleMode();
+    const currentTheme = this.themeService.theme();
+
+    // Only apply if we have a theme and the style mode is different
+    if (currentTheme && currentTheme.styleMode !== styleMode) {
+      try {
+        this.themeService.applyTheme({
+          ...currentTheme,
+          styleMode
+        });
+      } catch (err) {
+        console.error('Failed to apply style mode:', err);
+      }
+    }
+  });
 
   loadBoards(): void {
     this.loading.set(true);
@@ -475,5 +532,84 @@ export class SettingsComponent implements OnInit {
         alert('Failed to update preference');
       }
     });
+  }
+
+  // Global Custom CSS Methods
+
+  loadGlobalCss(): void {
+    this.cssLoading.set(true);
+    this.settingsService.getSettings().subscribe({
+      next: (settings) => {
+        this.globalCustomCss.set(settings.globalCustomCss || '');
+        this.cssLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load global CSS:', err);
+        // Don't block the page if global CSS fails to load
+        this.globalCustomCss.set('');
+        this.cssLoading.set(false);
+      }
+    });
+  }
+
+  onGlobalCssChange(css: string): void {
+    this.globalCustomCss.set(css);
+  }
+
+  saveGlobalCss(): void {
+    this.cssLoading.set(true);
+    this.settingsService.updateGlobalCss(this.globalCustomCss()).subscribe({
+      next: (settings) => {
+        this.globalCustomCss.set(settings.globalCustomCss || '');
+        this.cssLoading.set(false);
+        alert('Global CSS saved successfully!');
+      },
+      error: (err) => {
+        console.error('Failed to save global CSS:', err);
+        this.cssLoading.set(false);
+        alert('Failed to save global CSS');
+      }
+    });
+  }
+
+  resetGlobalCss(): void {
+    if (!confirm('Reset global CSS to default (empty)? This will remove all custom styling.')) {
+      return;
+    }
+
+    this.globalCustomCss.set('');
+    this.cssLoading.set(true);
+    this.settingsService.updateGlobalCss(null).subscribe({
+      next: (settings) => {
+        this.globalCustomCss.set('');
+        this.cssLoading.set(false);
+        alert('Global CSS reset successfully!');
+      },
+      error: (err) => {
+        console.error('Failed to reset global CSS:', err);
+        this.cssLoading.set(false);
+        alert('Failed to reset global CSS');
+      }
+    });
+  }
+
+  // Design Style Methods
+
+  onStyleModeChange(styleMode: StyleMode): void {
+    this.selectedStyleMode.set(styleMode);
+
+    // Update user preference in database
+    const currentUser = this.user();
+    if (currentUser?.preferredThemeId) {
+      this.authService.updateUserThemePreference(currentUser.preferredThemeId, styleMode).subscribe({
+        next: () => {
+          console.log('Style mode preference updated');
+        },
+        error: (err) => {
+          console.error('Failed to update style mode preference:', err);
+          alert('Failed to save style mode preference');
+        }
+      });
+    }
   }
 }

@@ -2,9 +2,9 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { db } from '../db/index';
-import { cards } from '../db/schema';
+import { cards, zones, tabs, boards } from '../db/schema';
 import { authMiddleware, requirePermission } from '../middleware/auth.middleware';
-import { eq } from 'drizzle-orm';
+import { eq, like, or } from 'drizzle-orm';
 import { AuthEnv } from '../types';
 
 const cardsRouter = new Hono<AuthEnv>();
@@ -51,6 +51,47 @@ const updateCardLayoutSchema = z.object({
 
 const updateCardStyleSchema = z.object({
   style: z.record(z.any())
+});
+
+// Search cards across all boards
+cardsRouter.get('/search', requirePermission('board:view'), async (c) => {
+  const query = c.req.query('q');
+
+  if (!query) {
+    return c.json([]);
+  }
+
+  // Join cards with zones, tabs, and boards to get full context
+  const results = await db
+    .select({
+      id: cards.id,
+      title: cards.title,
+      subtitle: cards.subtitle,
+      meta: cards.meta,
+      widgets: cards.widgets,
+      boardName: boards.name,
+      boardSlug: boards.slug,
+      tabName: tabs.name,
+      zoneName: zones.name
+    })
+    .from(cards)
+    .innerJoin(zones, eq(cards.zoneId, zones.id))
+    .innerJoin(tabs, eq(zones.tabId, tabs.id))
+    .innerJoin(boards, eq(tabs.boardId, boards.id))
+    .where(
+      or(
+        like(cards.title, `%${query}%`),
+        like(cards.subtitle, `%${query}%`)
+      )
+    );
+
+  // Parse meta field if it's a string
+  const parsedResults = results.map(card => ({
+    ...card,
+    meta: card.meta && typeof card.meta === 'string' ? JSON.parse(card.meta) : card.meta
+  }));
+
+  return c.json(parsedResults);
 });
 
 // Get cards for a zone

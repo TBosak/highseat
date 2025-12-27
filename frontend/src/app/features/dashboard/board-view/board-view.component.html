@@ -1,4 +1,4 @@
-<div class="board-view-container" [attr.data-design-mode]="designMode.isDesignMode()">
+<div class="board-view-container" [attr.data-design-mode]="designMode.isDesignMode()" [attr.data-board-id]="board()?.id">
   <!-- Tab background layer with lazy loading optimization -->
   @if (currentTab()?.backgroundImage) {
     <div class="tab-background">

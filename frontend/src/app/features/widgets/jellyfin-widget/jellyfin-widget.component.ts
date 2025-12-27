@@ -8,6 +8,7 @@ import { faPlay, faPause, faSpinner, faFilm, faTv, faMusic, faRefresh } from '@f
 import { JellyfinWidgetConfig, JellyfinSession, JellyfinRecentItem, JellyfinData } from '../../../core/models';
 import { IconCatalogService } from '../../../core/services/icon-catalog.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { WidgetPrefetchService } from '../../../core/services/widget-prefetch.service';
 
 @Component({
   selector: 'app-jellyfin-widget',
@@ -20,6 +21,7 @@ export class JellyfinWidgetComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private iconCatalog = inject(IconCatalogService);
   private themeService = inject(ThemeService);
+  private prefetchService = inject(WidgetPrefetchService);
   private subscription?: Subscription;
 
   @Input() config!: JellyfinWidgetConfig;
@@ -49,32 +51,46 @@ export class JellyfinWidgetComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const refreshInterval = (this.config.refreshInterval || 10) * 1000;
+    // Try to use prefetched data first
+    const cachedData = this.prefetchService.getJellyfinData(this.config);
 
-    // Poll Jellyfin API at specified interval
-    this.subscription = interval(refreshInterval)
-      .pipe(
-        startWith(0), // Fetch immediately on init
-        switchMap(() => this.fetchJellyfinData()),
-        catchError((err) => {
-          console.error('[Jellyfin Widget] Error fetching data:', err);
-          this.error.set('Failed to connect to Jellyfin server');
-          this.loading.set(false);
-          return [];
-        })
-      )
-      .subscribe({
-        next: (data) => {
-          this.jellyfinData.set(data);
-          this.loading.set(false);
-          this.error.set(null);
-        },
-        error: (err) => {
-          console.error('[Jellyfin Widget] Subscription error:', err);
-          this.error.set('Failed to fetch Jellyfin data');
-          this.loading.set(false);
-        }
+    if (cachedData) {
+      // Subscribe to prefetched data stream
+      console.log('[Jellyfin Widget] Using prefetched data');
+      this.subscription = cachedData.subscribe(entry => {
+        this.jellyfinData.set(entry.data);
+        this.loading.set(entry.loading && !entry.data); // Only show loading if no data yet
+        this.error.set(entry.error);
       });
+    } else {
+      // Fallback to widget-specific polling
+      console.log('[Jellyfin Widget] No prefetch available, using local polling');
+      const refreshInterval = (this.config.refreshInterval || 10) * 1000;
+
+      this.subscription = interval(refreshInterval)
+        .pipe(
+          startWith(0), // Fetch immediately on init
+          switchMap(() => this.fetchJellyfinData()),
+          catchError((err) => {
+            console.error('[Jellyfin Widget] Error fetching data:', err);
+            this.error.set('Failed to connect to Jellyfin server');
+            this.loading.set(false);
+            return [];
+          })
+        )
+        .subscribe({
+          next: (data) => {
+            this.jellyfinData.set(data);
+            this.loading.set(false);
+            this.error.set(null);
+          },
+          error: (err) => {
+            console.error('[Jellyfin Widget] Subscription error:', err);
+            this.error.set('Failed to fetch Jellyfin data');
+            this.loading.set(false);
+          }
+        });
+    }
   }
 
   ngOnDestroy(): void {

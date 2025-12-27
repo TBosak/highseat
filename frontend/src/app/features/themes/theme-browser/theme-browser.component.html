@@ -11,15 +11,6 @@
     </div>
 
     <div class="header-right">
-      <div class="style-mode-selector">
-        <label>Style Mode:</label>
-        <select [value]="selectedStyleMode()" (change)="selectedStyleMode.set($any($event.target).value)">
-          @for (mode of styleModes; track mode.value) {
-            <option [value]="mode.value">{{ mode.label }}</option>
-          }
-        </select>
-      </div>
-
       <button class="btn btn-primary" (click)="openWizard()">
         <fa-icon [icon]="faPlus" class="icon-sm"></fa-icon>
         <span>Create Custom Theme</span>

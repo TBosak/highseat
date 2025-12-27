@@ -23,6 +23,7 @@ export interface Board {
   isLocked: boolean;
   order: number;
   icon?: string;
+  customCss?: string | null;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

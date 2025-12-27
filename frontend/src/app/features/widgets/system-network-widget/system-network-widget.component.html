@@ -1,8 +1,8 @@
 <div class="system-network-widget">
-  @if (connectionState() === 'connecting') {
+  @if (connectionState() === 'connecting' || !networkStats()) {
     <div class="status-message connecting">
       <div class="spinner"></div>
-      <span>Connecting to system monitor...</span>
+      <span>{{ connectionState() === 'connecting' ? 'Connecting to system monitor...' : 'Loading network stats...' }}</span>
     </div>
   } @else if (connectionState() === 'disconnected' || connectionState() === 'error') {
     <div class="status-message error">

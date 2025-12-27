@@ -279,6 +279,62 @@
         </div>
       </div>
     </section>
+
+    <!-- Design Style Section -->
+    <section class="settings-section settings-section--design-style">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Design Style</h2>
+          <p class="section-subtitle">Choose your preferred visual style for the dashboard</p>
+        </div>
+      </div>
+
+      <div class="style-mode-selector">
+        @for (option of styleModeOptions; track option.value) {
+          <button
+            class="style-mode-option"
+            [class.selected]="selectedStyleMode() === option.value"
+            (click)="onStyleModeChange(option.value)"
+          >
+            <div class="option-header">
+              <span class="option-label">{{ option.label }}</span>
+              @if (selectedStyleMode() === option.value) {
+                <span class="selected-badge">Active</span>
+              }
+            </div>
+            <p class="option-description">{{ option.description }}</p>
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Global Custom CSS Section -->
+    <section class="settings-section settings-section--custom-css" *hasPermission="'board:design'">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Global Custom CSS</h2>
+          <p class="section-subtitle">Add custom CSS that applies to all boards. Advanced users only.</p>
+        </div>
+      </div>
+
+      @if (cssLoading()) {
+        <div class="loading-state">
+          <fa-icon [icon]="faSpinner" class="icon-lg"></fa-icon>
+          <p>Loading custom CSS...</p>
+        </div>
+      } @else {
+        <app-css-editor
+          [css]="globalCustomCss()"
+          [label]="'Global Custom CSS'"
+          [helpText]="'This CSS will be applied across all boards. Use CSS variables like --accent, --text, --bg-elevated for theme-aware styling.'"
+          [placeholder]="'/* Add your custom CSS here */\n/* Example: */\n.dash-card {\n  border-radius: 12px;\n}'"
+          [examples]="cssExamples"
+          (cssChange)="onGlobalCssChange($event)"
+          (save)="saveGlobalCss()"
+          (reset)="resetGlobalCss()"
+        ></app-css-editor>
+      }
+    </section>
   </main>
 
   <!-- Create Board Modal -->

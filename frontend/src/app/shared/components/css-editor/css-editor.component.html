@@ -1,0 +1,87 @@
+<div class="css-editor">
+  <div class="editor-header">
+    <div class="header-left">
+      <fa-icon [icon]="faCode" class="icon-sm"></fa-icon>
+      <span class="editor-label">{{ label }}</span>
+      <span class="line-count">{{ getLineCount() }} lines</span>
+    </div>
+    <div class="header-right">
+      <button
+        class="btn btn-sm btn-secondary"
+        (click)="togglePreview()"
+        [title]="previewEnabled() ? 'Disable Preview' : 'Enable Preview'"
+      >
+        <fa-icon [icon]="previewEnabled() ? faEyeSlash : faEye" class="icon-sm"></fa-icon>
+        <span>Preview</span>
+      </button>
+      <button
+        class="btn btn-sm btn-secondary"
+        (click)="onReset()"
+        title="Reset to default"
+      >
+        <fa-icon [icon]="faUndo" class="icon-sm"></fa-icon>
+        <span>Reset</span>
+      </button>
+      <button
+        class="btn btn-sm btn-primary"
+        (click)="onSave()"
+        title="Save changes"
+      >
+        <fa-icon [icon]="faSave" class="icon-sm"></fa-icon>
+        <span>Save</span>
+      </button>
+    </div>
+  </div>
+
+  @if (helpText) {
+    <div class="help-text">
+      <fa-icon [icon]="faInfoCircle" class="icon-sm"></fa-icon>
+      <span>{{ helpText }}</span>
+    </div>
+  }
+
+  <div class="editor-body">
+    <textarea
+      class="css-textarea"
+      [value]="localCss()"
+      (input)="onCssChange($any($event.target).value)"
+      [placeholder]="placeholder"
+      spellcheck="false"
+    ></textarea>
+
+    @if (previewEnabled()) {
+      <div class="preview-banner">
+        <fa-icon [icon]="faEye" class="icon-sm"></fa-icon>
+        <span>Preview mode enabled - Changes visible in real-time</span>
+      </div>
+    }
+  </div>
+
+  @if (examples && examples.length > 0) {
+    <div class="examples-section">
+      <button
+        class="examples-toggle"
+        (click)="toggleExamples()"
+      >
+        <fa-icon [icon]="faCode" class="icon-sm"></fa-icon>
+        <span>{{ showExamples() ? 'Hide' : 'Show' }} Examples</span>
+      </button>
+
+      @if (showExamples()) {
+        <div class="examples-list">
+          @for (example of examples; track $index) {
+            <div class="example-item">
+              <pre class="example-code">{{ example }}</pre>
+              <button
+                class="btn btn-sm btn-secondary"
+                (click)="insertExample(example)"
+              >
+                Insert
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
