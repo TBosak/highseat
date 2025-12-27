@@ -1,4 +1,5 @@
 <span align="center">
+  
 <img width="200px" height="200px" src="https://github.com/TBosak/highseat/blob/main/frontend/public/header.png?raw=true">
 
 # Highseat
