@@ -12,9 +12,9 @@
 
 ## Stack
 
-- **Frontend:** Angular (latest) with standalone components, Signals, and Angular CDK
-- **Backend:** Bun runtime with Hono framework
-- **Database:** SQLite with Drizzle ORM
+- **Frontend:** Angular 21
+- **Backend:** Bun & Hono
+- **Database:** SQLite & Drizzle
 
 ## Features
 
