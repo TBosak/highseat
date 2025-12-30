@@ -1,0 +1,58 @@
+<div class="rss-widget">
+  <!-- Header -->
+  <div class="widget-header">
+    <div class="header-left">
+      <fa-icon [icon]="faRss" class="rss-icon"></fa-icon>
+      <h3 class="widget-title">{{ config.widgetName }}</h3>
+    </div>
+    <button class="refresh-btn" (click)="refresh()" [disabled]="loading()" title="Refresh feed">
+      <fa-icon [icon]="loading() ? faSpinner : faRefresh" [animation]="loading() ? 'spin' : undefined"></fa-icon>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="widget-content">
+    @if (loading() && !rssFeed()) {
+      <div class="loading-state">
+        <fa-icon [icon]="faSpinner" [animation]="'spin'" class="spinner"></fa-icon>
+        <p>Loading feed...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <p class="error-message">{{ error() }}</p>
+      </div>
+    } @else if (rssFeed()) {
+      <div class="feed-items">
+        @for (item of rssFeed()!.items; track item.guid || item.link) {
+          <div class="feed-item" (click)="openLink(item.link, $event)">
+            <div class="item-header">
+              <h4 class="item-title">{{ item.title }}</h4>
+              <fa-icon [icon]="faExternalLinkAlt" class="external-link-icon"></fa-icon>
+            </div>
+
+            @if (config.showDescription && item.description) {
+              <p class="item-description">
+                {{ truncate(stripHtml(item.description), 120) }}
+              </p>
+            }
+
+            <div class="item-meta">
+              @if (config.showPublishDate && item.pubDate) {
+                <span class="item-date">{{ formatDate(item.pubDate) }}</span>
+              }
+              @if (item.author) {
+                <span class="item-author">{{ item.author }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        @if (rssFeed()!.items.length === 0) {
+          <div class="empty-state">
+            <p>No items in this feed</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

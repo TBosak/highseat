@@ -45,8 +45,8 @@ export class JellyfinWidgetComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
 
   ngOnInit(): void {
-    if (!this.config.serverUrl || !this.config.apiKey) {
-      this.error.set('Jellyfin server URL and API key are required');
+    if (!this.config.credentialId || !this.config.serverUrl) {
+      this.error.set('Jellyfin configuration is incomplete');
       this.loading.set(false);
       return;
     }
@@ -99,8 +99,7 @@ export class JellyfinWidgetComponent implements OnInit, OnDestroy {
 
   private fetchJellyfinData() {
     return this.http.post<JellyfinData>('/api/jellyfin/all', {
-      url: this.config.serverUrl,
-      apiKey: this.config.apiKey,
+      credentialId: this.config.credentialId,
       recentLimit: Math.max(this.config.recentLimit || 10, 10)
     });
   }

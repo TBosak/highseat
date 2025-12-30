@@ -98,7 +98,7 @@ export interface CardStyle {
 }
 
 export interface CardWidget {
-  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'clock' | 'custom';
+  type: 'link' | 'status' | 'iframe' | 'metric' | 'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'clock' | 'rss' | 'calendar' | 'custom';
   config: Record<string, any>;
 }
 
@@ -126,8 +126,8 @@ export interface SystemNetworkWidgetConfig {
 }
 
 export interface PlexWidgetConfig {
-  serverUrl: string; // Plex server URL (e.g., http://192.168.1.100:32400)
-  token: string; // Plex authentication token
+  serverUrl: string; // Plex server URL for linking (e.g., http://192.168.1.100:32400)
+  credentialId: string; // Reference to encrypted Plex token in credentials table
   showNowPlaying?: boolean; // Show currently playing sessions (default: true)
   showRecent?: boolean; // Show recently added media (default: true)
   recentLimit?: number; // Number of recent items to show (default: 5)
@@ -182,8 +182,8 @@ export interface PlexData {
 }
 
 export interface JellyfinWidgetConfig {
-  serverUrl: string; // Jellyfin server URL (e.g., http://192.168.1.100:8096)
-  apiKey: string; // Jellyfin API key
+  serverUrl: string; // Jellyfin server URL for linking (e.g., http://192.168.1.100:8096)
+  credentialId: string; // Reference to encrypted Jellyfin API key in credentials table
   showNowPlaying?: boolean; // Show currently playing sessions (default: true)
   showRecent?: boolean; // Show recently added media (default: true)
   recentLimit?: number; // Number of recent items to show (default: 10)
@@ -244,6 +244,70 @@ export interface ClockWidgetConfig {
   showDate: boolean; // Show the date below the time
   timezone?: string; // IANA timezone identifier (e.g., 'America/New_York'), defaults to local
   style: 'digital' | 'analog'; // Clock display style
+}
+
+export interface RssWidgetConfig {
+  feedUrl: string; // RSS feed URL
+  widgetName: string; // Custom name for this RSS widget
+  itemLimit?: number; // Number of items to display (default: 10)
+  refreshInterval?: number; // Refresh interval in seconds (default: 300 = 5 minutes)
+  showDescription?: boolean; // Show item descriptions (default: true)
+  showPublishDate?: boolean; // Show publish dates (default: true)
+}
+
+export interface RssItem {
+  title: string;
+  link: string;
+  description?: string;
+  pubDate?: string;
+  author?: string;
+  guid?: string;
+}
+
+export interface RssFeed {
+  title: string;
+  description?: string;
+  link?: string;
+  items: RssItem[];
+  lastBuildDate?: string;
+}
+
+export interface CalendarWidgetConfig {
+  sources: CalendarSource[]; // Array of calendar sources (CalDAV or ICS feeds)
+  defaultView?: "dayGridMonth" | "listWeek" | "timeGridWeek"; // Default calendar view
+  refreshInterval?: number; // Refresh interval in seconds (default: 300 = 5 minutes)
+  showWeekNumbers?: boolean; // Show week numbers (default: false)
+  firstDayOfWeek?: number; // 0 = Sunday, 1 = Monday, etc. (default: 0)
+}
+
+export interface CalendarSource {
+  id: string; // Unique identifier for this source
+  type: "caldav" | "ics"; // Source type
+  name: string; // Display name for this calendar
+  color?: string; // Color for events from this calendar
+  enabled?: boolean; // Whether this source is enabled (default: true)
+  caldavConfig?: CalDAVSourceConfig; // Configuration for CalDAV sources
+  icsConfig?: ICSSourceConfig; // Configuration for ICS feed sources
+}
+
+export interface CalDAVSourceConfig {
+  credentialId: string; // Reference to encrypted CalDAV credentials in credentials table
+}
+
+export interface ICSSourceConfig {
+  feedUrl: string; // URL of the ICS feed
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: string; // ISO date string
+  end: string; // ISO date string
+  description?: string;
+  location?: string;
+  allDay?: boolean;
+  color?: string;
+  calendarName?: string;
 }
 
 export interface SystemMetrics {

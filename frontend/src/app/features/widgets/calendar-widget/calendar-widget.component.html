@@ -1,0 +1,67 @@
+<div class="calendar-widget">
+  <!-- Header -->
+  <div class="widget-header">
+    <div class="header-left">
+      <fa-icon [icon]="faCalendar" class="calendar-icon"></fa-icon>
+      <h3 class="widget-title">Calendar</h3>
+    </div>
+    <button class="refresh-btn" (click)="refresh()" [disabled]="loading()" title="Refresh calendar">
+      <fa-icon [icon]="loading() ? faSpinner : faRefresh" [animation]="loading() ? 'spin' : undefined"></fa-icon>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="widget-content">
+    @if (loading() && events().length === 0) {
+      <div class="loading-state">
+        <fa-icon [icon]="faSpinner" [animation]="'spin'" class="spinner"></fa-icon>
+        <p>Loading calendar...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <p class="error-message">{{ error() }}</p>
+      </div>
+    } @else {
+      <div class="calendar-container">
+        <full-calendar [options]="calendarOptions()"></full-calendar>
+      </div>
+    }
+  </div>
+
+  <!-- Event Details Modal -->
+  @if (selectedEvent()) {
+    <div class="event-modal-backdrop" (click)="closeEventModal()">
+      <div class="event-modal" (click)="$event.stopPropagation()">
+        <div class="event-modal-header">
+          <h3>{{ selectedEvent()!.title }}</h3>
+          <button class="close-btn" (click)="closeEventModal()">&times;</button>
+        </div>
+        <div class="event-modal-body">
+          <div class="event-detail">
+            <strong>Start:</strong> {{ formatEventDate(selectedEvent()!.start) }}
+          </div>
+          @if (selectedEvent()!.end) {
+            <div class="event-detail">
+              <strong>End:</strong> {{ formatEventDate(selectedEvent()!.end) }}
+            </div>
+          }
+          @if (selectedEvent()!.extendedProps?.location) {
+            <div class="event-detail">
+              <strong>Location:</strong> {{ selectedEvent()!.extendedProps.location }}
+            </div>
+          }
+          @if (selectedEvent()!.extendedProps?.calendarName) {
+            <div class="event-detail">
+              <strong>Calendar:</strong> {{ selectedEvent()!.extendedProps.calendarName }}
+            </div>
+          }
+          @if (selectedEvent()!.extendedProps?.description) {
+            <div class="event-detail event-description">
+              {{ selectedEvent()!.extendedProps.description }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

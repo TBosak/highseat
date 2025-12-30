@@ -274,4 +274,16 @@
       pointer-events: auto;
     }
   }
+
+  app-rss-widget {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  app-calendar-widget {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
 }

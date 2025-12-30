@@ -107,7 +107,7 @@ class PlexService {
           grandparentTitle: session.grandparentTitle,
           parentTitle: session.parentTitle,
           year: session.year,
-          thumb: session.thumb,
+          thumb: session.thumb ? this.getThumbnailUrl(config, session.thumb) : undefined,
           state: session.Player?.state || 'playing',
           progress: Math.round((session.viewOffset / session.duration) * 100) || 0,
           transcoding: !!transcodeSession,
@@ -151,7 +151,7 @@ class PlexService {
         grandparentTitle: item.grandparentTitle,
         parentTitle: item.parentTitle,
         year: item.year,
-        thumb: item.thumb,
+        thumb: item.thumb ? this.getThumbnailUrl(config, item.thumb) : undefined,
         addedAt: item.addedAt
       }));
     } catch (error) {

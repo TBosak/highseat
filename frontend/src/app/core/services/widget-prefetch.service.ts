@@ -125,7 +125,7 @@ export class WidgetPrefetchService {
    * Start Plex widget prefetch
    */
   private startPlexPrefetch(cacheKey: string, config: any): void {
-    if (!config.serverUrl || !config.token) {
+    if (!config.credentialId) {
       return;
     }
 
@@ -145,8 +145,7 @@ export class WidgetPrefetchService {
         switchMap(() => {
           cache.next({ ...cache.value, loading: true });
           return this.http.post<PlexData>('/api/plex/all', {
-            url: config.serverUrl,
-            token: config.token,
+            credentialId: config.credentialId,
             recentLimit: Math.max(config.recentLimit || 10, 10)
           }).pipe(
             catchError(err => {
@@ -182,7 +181,7 @@ export class WidgetPrefetchService {
    * Start Jellyfin widget prefetch
    */
   private startJellyfinPrefetch(cacheKey: string, config: any): void {
-    if (!config.serverUrl || !config.apiKey) {
+    if (!config.credentialId) {
       return;
     }
 
@@ -202,9 +201,7 @@ export class WidgetPrefetchService {
         switchMap(() => {
           cache.next({ ...cache.value, loading: true });
           return this.http.post<JellyfinData>('/api/jellyfin/all', {
-            url: config.serverUrl,
-            apiKey: config.apiKey,
-            userId: config.userId,
+            credentialId: config.credentialId,
             recentLimit: Math.max(config.recentLimit || 10, 10)
           }).pipe(
             catchError(err => {

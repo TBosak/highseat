@@ -17,6 +17,9 @@ import systemRoutes from './routes/system.routes';
 import plexRoutes from './routes/plex.routes';
 import jellyfinRoutes from './routes/jellyfin.routes';
 import settingsRoutes from './routes/settings.routes';
+import rssRoutes from './routes/rss.routes';
+import calendarRoutes from './routes/calendar.routes';
+import credentialsRoutes from './routes/credentials.routes';
 import { securityHeaders } from './middleware/security.middleware';
 import { websocketService } from './services/websocket.service';
 import type { AuthEnv } from './types';
@@ -34,6 +37,33 @@ if (!JWT_SECRET) {
 
 if (JWT_SECRET.length < 32) {
   console.warn('⚠️  WARNING: JWT_SECRET is shorter than 32 characters. Consider using a longer secret for better security.');
+}
+
+// Validate encryption key
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+if (!ENCRYPTION_KEY) {
+  console.error('❌ SECURITY ERROR: ENCRYPTION_KEY environment variable is not set!');
+  console.error('   This key is required to encrypt sensitive credentials (API keys, passwords) in the database.');
+  console.error('   Generate one with: openssl rand -base64 32');
+  console.error('   Example: ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('base64'));
+  process.exit(1);
+}
+
+// Decode base64 key and validate it's exactly 32 bytes for AES-256
+try {
+  const keyBuffer = Buffer.from(ENCRYPTION_KEY, 'base64');
+  if (keyBuffer.length !== 32) {
+    console.error('❌ SECURITY ERROR: ENCRYPTION_KEY must be exactly 32 bytes (256 bits) when base64-decoded!');
+    console.error(`   Current key decodes to ${keyBuffer.length} bytes.`);
+    console.error('   Generate a proper key with: openssl rand -base64 32');
+    process.exit(1);
+  }
+  console.log('✓ Encryption key validated (32 bytes for AES-256)');
+} catch (error) {
+  console.error('❌ SECURITY ERROR: ENCRYPTION_KEY is not valid base64!');
+  console.error('   Generate one with: openssl rand -base64 32');
+  process.exit(1);
 }
 
 const app = new Hono<AuthEnv>();
@@ -112,6 +142,9 @@ app.route('/api/system', systemRoutes);
 app.route('/api/plex', plexRoutes);
 app.route('/api/jellyfin', jellyfinRoutes);
 app.route('/api/settings', settingsRoutes);
+app.route('/api/rss', rssRoutes);
+app.route('/api/calendar', calendarRoutes);
+app.route('/api/credentials', credentialsRoutes);
 
 // Serve uploaded files
 app.use('/uploads/*', serveStatic({ root: './' }));

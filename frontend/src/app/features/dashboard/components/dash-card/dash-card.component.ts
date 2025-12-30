@@ -15,12 +15,14 @@ import { SystemNetworkWidgetComponent } from '../../../widgets/system-network-wi
 import { PlexWidgetComponent } from '../../../widgets/plex-widget/plex-widget.component';
 import { JellyfinWidgetComponent } from '../../../widgets/jellyfin-widget/jellyfin-widget.component';
 import { ClockWidgetComponent } from '../../../widgets/clock-widget/clock-widget.component';
-import type { Card, CardStyle, CardWidget, NoteWidgetConfig, SystemMetricsWidgetConfig, SystemProcessesWidgetConfig, SystemNetworkWidgetConfig, PlexWidgetConfig, JellyfinWidgetConfig, ClockWidgetConfig } from '../../../../core/models';
+import { RssWidgetComponent } from '../../../widgets/rss-widget/rss-widget.component';
+import { CalendarWidgetComponent } from '../../../widgets/calendar-widget/calendar-widget.component';
+import type { Card, CardStyle, CardWidget, NoteWidgetConfig, SystemMetricsWidgetConfig, SystemProcessesWidgetConfig, SystemNetworkWidgetConfig, PlexWidgetConfig, JellyfinWidgetConfig, ClockWidgetConfig, RssWidgetConfig, CalendarWidgetConfig } from '../../../../core/models';
 
 @Component({
   selector: 'app-dash-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, HasPermissionDirective, FontAwesomeModule, NoteWidgetComponent, SystemMetricsWidgetComponent, SystemProcessesWidgetComponent, SystemNetworkWidgetComponent, PlexWidgetComponent, JellyfinWidgetComponent, ClockWidgetComponent],
+  imports: [CommonModule, FormsModule, HasPermissionDirective, FontAwesomeModule, NoteWidgetComponent, SystemMetricsWidgetComponent, SystemProcessesWidgetComponent, SystemNetworkWidgetComponent, PlexWidgetComponent, JellyfinWidgetComponent, ClockWidgetComponent, RssWidgetComponent, CalendarWidgetComponent],
   templateUrl: './dash-card.component.html',
   styleUrls: ['./dash-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -206,5 +208,13 @@ export class DashCardComponent {
 
   getClockConfig(config: Record<string, any>): ClockWidgetConfig {
     return config as ClockWidgetConfig;
+  }
+
+  getRssConfig(config: Record<string, any>): RssWidgetConfig {
+    return config as RssWidgetConfig;
+  }
+
+  getCalendarConfig(config: Record<string, any>): CalendarWidgetConfig {
+    return config as CalendarWidgetConfig;
   }
 }

@@ -104,6 +104,16 @@
               [config]="getClockConfig(widget.config)"
             ></app-clock-widget>
           }
+          @if (widget.type === 'rss') {
+            <app-rss-widget
+              [config]="getRssConfig(widget.config)"
+            ></app-rss-widget>
+          }
+          @if (widget.type === 'calendar') {
+            <app-calendar-widget
+              [config]="getCalendarConfig(widget.config)"
+            ></app-calendar-widget>
+          }
         }
       </div>
     }

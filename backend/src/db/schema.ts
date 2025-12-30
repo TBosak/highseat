@@ -148,10 +148,26 @@ export const appSettings = sqliteTable('app_settings', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 });
 
+// Credentials table - stores encrypted API keys, passwords, tokens, etc.
+export const credentials = sqliteTable('credentials', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // User-friendly name (e.g., "My Plex Server", "Work Calendar")
+  serviceType: text('service_type').notNull(), // 'plex', 'jellyfin', 'caldav', 'ics', etc.
+  encryptedData: text('encrypted_data').notNull(), // AES-256-GCM encrypted JSON data
+  metadata: text('metadata'), // Optional JSON metadata (not encrypted, e.g., { "serverUrl": "..." })
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+}, (table) => ({
+  // Index for efficiently querying credentials by user and service type
+  userServiceIdx: index('idx_credentials_user_service').on(table.userId, table.serviceType)
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   boards: many(boards),
-  refreshTokens: many(refreshTokens)
+  refreshTokens: many(refreshTokens),
+  credentials: many(credentials)
 }));
 
 export const boardsRelations = relations(boards, ({ one, many }) => ({
@@ -192,6 +208,13 @@ export const cardsRelations = relations(cards, ({ one }) => ({
 export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
   user: one(users, {
     fields: [refreshTokens.userId],
+    references: [users.id]
+  })
+}));
+
+export const credentialsRelations = relations(credentials, ({ one }) => ({
+  user: one(users, {
+    fields: [credentials.userId],
     references: [users.id]
   })
 }));

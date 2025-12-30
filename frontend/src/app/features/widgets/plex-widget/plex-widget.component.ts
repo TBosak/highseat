@@ -45,8 +45,8 @@ export class PlexWidgetComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
 
   ngOnInit(): void {
-    if (!this.config.serverUrl || !this.config.token) {
-      this.error.set('Plex server URL and token are required');
+    if (!this.config.credentialId || !this.config.serverUrl) {
+      this.error.set('Plex configuration is incomplete');
       this.loading.set(false);
       return;
     }
@@ -99,8 +99,7 @@ export class PlexWidgetComponent implements OnInit, OnDestroy {
 
   private fetchPlexData() {
     return this.http.post<PlexData>('/api/plex/all', {
-      url: this.config.serverUrl,
-      token: this.config.token,
+      credentialId: this.config.credentialId,
       recentLimit: Math.max(this.config.recentLimit || 10, 10)
     });
   }
@@ -146,13 +145,10 @@ export class PlexWidgetComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get thumbnail URL
+   * Get thumbnail URL (now returned directly from backend)
    */
-  getThumbnailUrl(thumbPath?: string): string {
-    if (!thumbPath || !this.config.serverUrl || !this.config.token) {
-      return '';
-    }
-    return `${this.config.serverUrl}${thumbPath}?X-Plex-Token=${this.config.token}`;
+  getThumbnailUrl(thumbUrl?: string): string {
+    return thumbUrl || '';
   }
 
   /**

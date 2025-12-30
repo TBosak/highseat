@@ -1,5 +1,5 @@
-<div class="modal-overlay" (click)="handleCancel()">
-  <div class="modal card" (click)="$event.stopPropagation()">
+<div class="modal-overlay">
+  <div class="modal card">
     <div class="modal-header">
       <h2>{{ modalTitle() }}</h2>
       <button class="btn btn-sm btn-secondary" (click)="handleCancel()">
@@ -7,7 +7,8 @@
       </button>
     </div>
 
-    <form (ngSubmit)="handleSubmit()">
+    <form (ngSubmit)="handleSubmit()" class="modal-form">
+      <div class="modal-body">
       <!-- Card Type Selector -->
       <div class="form-group">
         <label>Card Type</label>
@@ -37,83 +38,45 @@
       @if (isWidgetCard()) {
         <div class="form-group">
           <label>Widget Type</label>
+          <div class="widget-search">
+            <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search widgets..."
+              [value]="widgetSearchQuery()"
+              (input)="widgetSearchQuery.set($any($event.target).value)"
+            />
+            @if (widgetSearchQuery()) {
+              <button type="button" class="clear-search" (click)="widgetSearchQuery.set('')" title="Clear search">
+                <fa-icon [icon]="faTimes"></fa-icon>
+              </button>
+            }
+          </div>
           <div class="widget-type-selector">
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'clock'"
-              (click)="widgetType.set('clock')"
-            >
-              <fa-icon [icon]="faClock" class="widget-icon"></fa-icon>
-              <strong>Clock</strong>
-              <span>Customizable time display</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'note'"
-              (click)="widgetType.set('note')"
-            >
-              <fa-icon [icon]="faStickyNote" class="widget-icon"></fa-icon>
-              <strong>Note</strong>
-              <span>Rich text notepad with formatting</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'system-metrics'"
-              (click)="widgetType.set('system-metrics')"
-            >
-              <fa-icon [icon]="faMicrochip" class="widget-icon"></fa-icon>
-              <strong>System Metrics</strong>
-              <span>CPU, RAM, and Disk usage</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'system-network'"
-              (click)="widgetType.set('system-network')"
-            >
-              <fa-icon [icon]="faNetworkWired" class="widget-icon"></fa-icon>
-              <strong>Network</strong>
-              <span>Network throughput and stats</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'system-processes'"
-              (click)="widgetType.set('system-processes')"
-            >
-              <fa-icon [icon]="faListCheck" class="widget-icon"></fa-icon>
-              <strong>Processes</strong>
-              <span>Top running processes</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'plex'"
-              (click)="widgetType.set('plex')"
-            >
-              <img [src]="plexIconUrl()" alt="Plex" class="widget-icon-img" />
-              <strong>Plex</strong>
-              <span>Now playing and recent media</span>
-            </button>
-
-            <button
-              type="button"
-              class="widget-btn"
-              [class.active]="widgetType() === 'jellyfin'"
-              (click)="widgetType.set('jellyfin')"
-            >
-              <img [src]="jellyfinIconUrl()" alt="Jellyfin" class="widget-icon-img" />
-              <strong>Jellyfin</strong>
-              <span>Now playing and recent media</span>
-            </button>
+            @for (widget of filteredWidgets(); track widget.type) {
+              <button
+                type="button"
+                class="widget-btn"
+                [class.active]="widgetType() === widget.type"
+                (click)="widgetType.set(widget.type)"
+              >
+                @switch (widget.iconType) {
+                  @case ('fontawesome') {
+                    <fa-icon [icon]="$any(widget.icon)" class="widget-icon"></fa-icon>
+                  }
+                  @case ('computed') {
+                    <img [src]="$any(widget.icon)()" [alt]="widget.name" class="widget-icon-img" />
+                  }
+                }
+                <strong>{{ widget.name }}</strong>
+                <span>{{ widget.description }}</span>
+              </button>
+            } @empty {
+              <div class="no-results">
+                <p>No widgets found matching "{{ widgetSearchQuery() }}"</p>
+              </div>
+            }
           </div>
         </div>
       }
@@ -217,7 +180,7 @@
 
             <!-- Icon Grid -->
             <div class="icon-grid">
-              @for (icon of filteredIcons(); track icon.id) {
+              @for (icon of displayedIcons(); track icon.id) {
                 <button
                   type="button"
                   class="icon-option"
@@ -225,11 +188,17 @@
                   (click)="selectIcon(icon.id)"
                   [title]="icon.name"
                 >
-                  <img [src]="getIconUrl(icon)" [alt]="icon.name" />
+                  <img [src]="getIconUrl(icon)" [alt]="icon.name" loading="lazy" />
                   <span class="icon-name">{{ icon.name }}</span>
                 </button>
               }
             </div>
+
+            @if (hasMoreIcons()) {
+              <div class="info-message">
+                <p>Showing first 100 of {{ filteredIcons().length }} icons. Refine your search to see more.</p>
+              </div>
+            }
 
             @if (filteredIcons().length === 0) {
               <div class="empty-state">
@@ -258,203 +227,47 @@
         </div>
       }
 
-      <!-- Plex Configuration (only for Plex widget) -->
-      @if (isWidgetCard() && widgetType() === 'plex') {
-        <div class="form-group">
-          <label for="plexServerUrl">Plex Server URL *</label>
-          <div class="input-with-icon">
-            <fa-icon [icon]="faLink" class="input-icon"></fa-icon>
-            <input
-              id="plexServerUrl"
-              type="url"
-              [value]="plexServerUrl()"
-              (input)="plexServerUrl.set($any($event.target).value)"
-              placeholder="http://192.168.1.100:32400"
-              required
-            />
-          </div>
-          <small class="input-hint">Your Plex server URL (e.g., http://192.168.1.100:32400)</small>
-        </div>
-
-        <div class="form-group">
-          <label for="plexToken">Plex Token *</label>
-          <input
-            id="plexToken"
-            type="password"
-            [value]="plexToken()"
-            (input)="plexToken.set($any($event.target).value)"
-            placeholder="Your Plex authentication token"
-            required
-          />
-          <small class="input-hint">
-            <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noopener noreferrer">
-              How to find your Plex token
-            </a>
-          </small>
-        </div>
-      }
-
-      <!-- Jellyfin Configuration (only for Jellyfin widget) -->
-      @if (isWidgetCard() && widgetType() === 'jellyfin') {
-        <div class="form-group">
-          <label for="jellyfinServerUrl">Jellyfin Server URL *</label>
-          <div class="input-with-icon">
-            <fa-icon [icon]="faLink" class="input-icon"></fa-icon>
-            <input
-              id="jellyfinServerUrl"
-              type="url"
-              [value]="jellyfinServerUrl()"
-              (input)="jellyfinServerUrl.set($any($event.target).value)"
-              placeholder="http://192.168.1.100:8096"
-              required
-            />
-          </div>
-          <small class="input-hint">Your Jellyfin server URL (e.g., http://192.168.1.100:8096)</small>
-        </div>
-
-        <div class="form-group">
-          <label for="jellyfinApiKey">Jellyfin API Key *</label>
-          <input
-            id="jellyfinApiKey"
-            type="password"
-            [value]="jellyfinApiKey()"
-            (input)="jellyfinApiKey.set($any($event.target).value)"
-            placeholder="Your Jellyfin API key"
-            required
-          />
-          <small class="input-hint">
-            <a href="https://jellyfin.org/docs/general/server/api-keys.html" target="_blank" rel="noopener noreferrer">
-              How to create a Jellyfin API key
-            </a>
-          </small>
-        </div>
-      }
-
-      <!-- Clock Configuration (only for Clock widget) -->
-      @if (isWidgetCard() && widgetType() === 'clock') {
-        <div class="form-group">
-          <label>Clock Style</label>
-          <div class="clock-style-selector">
-            <button
-              type="button"
-              class="style-option"
-              [class.active]="clockStyle() === 'digital'"
-              (click)="clockStyle.set('digital')"
-            >
-              <fa-icon [icon]="faClock"></fa-icon>
-              <span>Digital</span>
-            </button>
-            <button
-              type="button"
-              class="style-option"
-              [class.active]="clockStyle() === 'analog'"
-              (click)="clockStyle.set('analog')"
-            >
-              <fa-icon [icon]="faClock"></fa-icon>
-              <span>Analog</span>
-            </button>
-          </div>
-        </div>
-
-        @if (clockStyle() === 'digital') {
-          <div class="form-group">
-            <label>Time Format</label>
-            <div class="clock-format-selector">
-              <button
-                type="button"
-                class="format-option"
-                [class.active]="clockFormat() === '12h'"
-                (click)="clockFormat.set('12h')"
-              >
-                12-Hour
-              </button>
-              <button
-                type="button"
-                class="format-option"
-                [class.active]="clockFormat() === '24h'"
-                (click)="clockFormat.set('24h')"
-              >
-                24-Hour
-              </button>
-            </div>
-          </div>
+      <!-- Widget Configuration (dynamically loaded based on widget type) -->
+      @if (isWidgetCard() && selectedWidgetConfig()) {
+        @switch (widgetType()) {
+          @case ('plex') {
+            <app-plex-widget-form #widgetForm></app-plex-widget-form>
+          }
+          @case ('jellyfin') {
+            <app-jellyfin-widget-form #widgetForm></app-jellyfin-widget-form>
+          }
+          @case ('rss') {
+            <app-rss-widget-form #widgetForm></app-rss-widget-form>
+          }
+          @case ('calendar') {
+            <app-calendar-widget-form #widgetForm></app-calendar-widget-form>
+          }
+          @case ('clock') {
+            <app-clock-widget-form #widgetForm></app-clock-widget-form>
+          }
         }
-
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [checked]="clockShowSeconds()"
-              (change)="clockShowSeconds.set(!clockShowSeconds())"
-            />
-            <span>Show Seconds</span>
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [checked]="clockShowDate()"
-              (change)="clockShowDate.set(!clockShowDate())"
-            />
-            <span>Show Date</span>
-          </label>
-        </div>
       }
 
       <!-- Widget Info (only for widget cards) -->
-      @if (isWidgetCard()) {
+      @if (isWidgetCard() && selectedWidget()) {
         <div class="widget-info">
-          @if (widgetType() === 'note') {
-            <div class="info-card">
-              <strong><fa-icon [icon]="faStickyNote"></fa-icon> Note Widget</strong>
-              <p>A rich text editor will be added to your card. You can format text, add headings, lists, and more. The widget auto-saves your notes every 2 seconds.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Make the card larger (2x2 or bigger) for a better editing experience.</p>
-            </div>
-          }
-          @if (widgetType() === 'system-metrics') {
-            <div class="info-card">
-              <strong><fa-icon [icon]="faMicrochip"></fa-icon> System Metrics Widget</strong>
-              <p>Displays real-time CPU, RAM, and Disk usage with color-coded indicators. Updates automatically every 2.5 seconds via WebSocket.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Usage levels are shown with three colors: normal (below 60%), warning (60-80%), and critical (above 80%).</p>
-            </div>
-          }
-          @if (widgetType() === 'system-processes') {
-            <div class="info-card">
-              <strong><fa-icon [icon]="faListCheck"></fa-icon> Processes Widget</strong>
-              <p>Shows the top 10 running processes sorted by CPU usage. Displays process name, PID, CPU%, and memory usage in real-time.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Hover over a process to see the full command.</p>
-            </div>
-          }
-          @if (widgetType() === 'system-network') {
-            <div class="info-card">
-              <strong><fa-icon [icon]="faNetworkWired"></fa-icon> Network Widget</strong>
-              <p>Displays real-time network throughput (upload/download speeds) and interface statistics. Shows data for all active network interfaces.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Network speeds are displayed in MB/s by default.</p>
-            </div>
-          }
-          @if (widgetType() === 'plex') {
-            <div class="info-card">
-              <strong><img [src]="plexIconUrl()" alt="Plex" class="info-icon" /> Plex Widget</strong>
-              <p>Compact widget showing library stats (movies/TV shows), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Additional active sessions are shown as "+N more sessions" to keep the widget small.</p>
-            </div>
-          }
-          @if (widgetType() === 'jellyfin') {
-            <div class="info-card">
-              <strong><img [src]="jellyfinIconUrl()" alt="Jellyfin" class="info-icon" /> Jellyfin Widget</strong>
-              <p>Compact widget showing library stats (movies/TV shows/music), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: Additional active sessions are shown as "+N more sessions" to keep the widget small.</p>
-            </div>
-          }
-          @if (widgetType() === 'clock') {
-            <div class="info-card">
-              <strong><fa-icon [icon]="faClock"></fa-icon> Clock Widget</strong>
-              <p>Displays the current time in digital or analog format. Choose between 12-hour or 24-hour format, toggle seconds display, and show/hide the date.</p>
-              <p class="tip"><fa-icon [icon]="faLightbulb"></fa-icon> Tip: The analog clock shows a traditional clock face with hour, minute, and optional second hands.</p>
-            </div>
-          }
+          <div class="info-card">
+            <strong>
+              @switch (selectedWidget()!.iconType) {
+                @case ('fontawesome') {
+                  <fa-icon [icon]="$any(selectedWidget()!.icon)"></fa-icon>
+                }
+                @case ('computed') {
+                  <img [src]="$any(selectedWidget()!.icon)()" [alt]="selectedWidget()!.info.title" class="info-icon" />
+                }
+              }
+              {{ selectedWidget()!.info.title }}
+            </strong>
+            <p>{{ selectedWidget()!.info.description }}</p>
+            <p class="tip">
+              <fa-icon [icon]="faLightbulb"></fa-icon> Tip: {{ selectedWidget()!.info.tip }}
+            </p>
+          </div>
         </div>
       }
 
@@ -480,6 +293,7 @@
           </div>
         </div>
       }
+      </div>
 
       <!-- Actions -->
       <div class="modal-actions">

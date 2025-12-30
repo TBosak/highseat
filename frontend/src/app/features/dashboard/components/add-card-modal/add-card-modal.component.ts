@@ -1,19 +1,35 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, signal, effect, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, signal, effect, computed, Type, ViewChild, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faTimes, faLink, faImage, faStickyNote, faLightbulb, faMicrochip, faListCheck, faNetworkWired, faFilm, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faTimes, faLink, faImage, faStickyNote, faLightbulb, faMicrochip, faListCheck, faNetworkWired, faFilm, faClock, faRss, faCalendar } from '@fortawesome/free-solid-svg-icons';
 import { IconCatalogService, IconCatalogEntry, IconCategory } from '../../../../core/services/icon-catalog.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { AddCardModalService } from '../../../../core/services/add-card-modal.service';
 import { CardService } from '../../../../core/services/card.service';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { PlexWidgetFormComponent } from '../widget-forms/plex-widget-form.component';
+import { JellyfinWidgetFormComponent } from '../widget-forms/jellyfin-widget-form.component';
+import { RssWidgetFormComponent } from '../widget-forms/rss-widget-form.component';
+import { CalendarWidgetFormComponent } from '../widget-forms/calendar-widget-form.component';
+import { ClockWidgetFormComponent } from '../widget-forms/clock-widget-form.component';
+import { WidgetFormComponent } from '../widget-forms/widget-form.interface';
 
 @Component({
   selector: 'app-add-card-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    FontAwesomeModule,
+    PlexWidgetFormComponent,
+    JellyfinWidgetFormComponent,
+    RssWidgetFormComponent,
+    CalendarWidgetFormComponent,
+    ClockWidgetFormComponent
+  ],
   templateUrl: './add-card-modal.component.html',
   styleUrls: ['./add-card-modal.component.scss']
 })
@@ -22,6 +38,7 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   private themeService = inject(ThemeService);
   private addCardModal = inject(AddCardModalService);
   private cardService = inject(CardService);
+  private http = inject(HttpClient);
 
   @Output() cardCreated = new EventEmitter<{
     title: string;
@@ -33,6 +50,9 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   }>();
 
   @Output() cancelled = new EventEmitter<void>();
+
+  // Dynamic ViewChild reference to the currently displayed widget form
+  @ViewChild('widgetForm') widgetFormComponent?: WidgetFormComponent;
 
   // Icons
   faSearch = faSearch;
@@ -46,6 +66,8 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   faNetworkWired = faNetworkWired;
   faFilm = faFilm;
   faClock = faClock;
+  faRss = faRss;
+  faCalendar = faCalendar;
 
   // Media server icons from catalog
   plexIconUrl = computed(() => {
@@ -60,7 +82,7 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
 
   // Card type
   cardType = signal<'regular' | 'widget'>('regular');
-  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'clock'>('note');
+  widgetType = signal<'note' | 'system-metrics' | 'system-processes' | 'system-network' | 'plex' | 'jellyfin' | 'clock' | 'rss' | 'calendar'>('note');
 
   // Form fields
   title = signal('');
@@ -81,16 +103,264 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
   clockShowDate = signal(true);
   clockStyle = signal<'digital' | 'analog'>('digital');
 
+  // RSS widget fields
+  rssFeedUrl = signal('');
+  rssWidgetName = signal('');
+  rssItemLimit = signal(10);
+  rssShowDescription = signal(true);
+  rssShowPublishDate = signal(true);
+
+  // Calendar widget fields
+  calendarSourceType = signal<'ics' | 'caldav'>('ics');
+  calendarSourceName = signal('');
+  calendarSourceColor = signal('#3788d8');
+  calendarIcsFeedUrl = signal('');
+  calendarCaldavServerUrl = signal('');
+  calendarCaldavUsername = signal('');
+  calendarCaldavPassword = signal('');
+
   // Icon selection
   iconSource = signal<'catalog' | 'custom'>('catalog');
   selectedIconId = signal<string | null>(null);
   customIconUrl = signal('');
   iconSearchQuery = signal('');
 
+  // Widget search
+  widgetSearchQuery = signal('');
+
+  // Widget definitions
+  readonly availableWidgets = [
+    {
+      type: 'clock' as const,
+      name: 'Clock',
+      description: 'Customizable time display',
+      icon: this.faClock,
+      iconType: 'fontawesome' as const,
+      configComponent: ClockWidgetFormComponent,
+      defaults: {
+        title: 'Clock',
+        layoutW: 3,
+        layoutH: 2,
+        layoutMinW: 3,
+        layoutMinH: 2
+      },
+      info: {
+        title: 'Clock Widget',
+        description: 'Displays the current time in digital or analog format. Choose between 12-hour or 24-hour format, toggle seconds display, and show/hide the date.',
+        tip: 'The analog clock shows a traditional clock face with hour, minute, and optional second hands.'
+      }
+    },
+    {
+      type: 'note' as const,
+      name: 'Note',
+      description: 'Rich text notepad with formatting',
+      icon: this.faStickyNote,
+      iconType: 'fontawesome' as const,
+      configComponent: null,
+      defaults: {
+        title: 'Note',
+        layoutW: 2,
+        layoutH: 2,
+        layoutMinW: 2,
+        layoutMinH: 2
+      },
+      info: {
+        title: 'Note Widget',
+        description: 'A rich text editor will be added to your card. You can format text, add headings, lists, and more. The widget auto-saves your notes every 2 seconds.',
+        tip: 'Make the card larger (2x2 or bigger) for a better editing experience.'
+      }
+    },
+    {
+      type: 'rss' as const,
+      name: 'RSS Feed',
+      description: 'Scrollable RSS feed reader',
+      icon: this.faRss,
+      iconType: 'fontawesome' as const,
+      configComponent: RssWidgetFormComponent,
+      defaults: {
+        title: 'RSS Feed',
+        layoutW: 3,
+        layoutH: 6,
+        layoutMinW: 3,
+        layoutMinH: 4
+      },
+      info: {
+        title: 'RSS Feed Widget',
+        description: 'Displays a scrollable list of items from any RSS or Atom feed. Shows article titles, descriptions, publish dates, and authors. Updates automatically every 5 minutes.',
+        tip: 'Click on any feed item to open the article in a new tab.'
+      }
+    },
+    {
+      type: 'calendar' as const,
+      name: 'Calendar',
+      description: 'Display events from calendars',
+      icon: this.faCalendar,
+      iconType: 'fontawesome' as const,
+      configComponent: CalendarWidgetFormComponent,
+      defaults: {
+        title: 'Calendar',
+        layoutW: 4,
+        layoutH: 6,
+        layoutMinW: 4,
+        layoutMinH: 5
+      },
+      info: {
+        title: 'Calendar Widget',
+        description: 'Displays events from ICS calendar feeds. Shows monthly, weekly, or daily views with color-coded events. Click events to see details. Updates automatically every 5 minutes.',
+        tip: 'Get your Google Calendar ICS feed URL from Calendar Settings → Integrate Calendar → Secret address in iCal format.'
+      }
+    },
+    {
+      type: 'system-metrics' as const,
+      name: 'System Metrics',
+      description: 'CPU, RAM, and Disk usage',
+      icon: this.faMicrochip,
+      iconType: 'fontawesome' as const,
+      configComponent: null,
+      defaults: {
+        title: 'System Metrics',
+        layoutW: 3,
+        layoutH: 5,
+        layoutMinW: 3,
+        layoutMinH: 5,
+        layoutMaxW: 3,
+        layoutMaxH: 5
+      },
+      info: {
+        title: 'System Metrics Widget',
+        description: 'Displays real-time CPU, RAM, and Disk usage with color-coded indicators. Updates automatically every 2.5 seconds via WebSocket.',
+        tip: 'Usage levels are shown with three colors: normal (below 60%), warning (60-80%), and critical (above 80%).'
+      }
+    },
+    {
+      type: 'system-network' as const,
+      name: 'Network',
+      description: 'Network throughput and stats',
+      icon: this.faNetworkWired,
+      iconType: 'fontawesome' as const,
+      configComponent: null,
+      defaults: {
+        title: 'Network Stats',
+        layoutW: 3,
+        layoutH: 4,
+        layoutMinW: 3,
+        layoutMinH: 4,
+        layoutMaxW: 3,
+        layoutMaxH: 4
+      },
+      info: {
+        title: 'Network Widget',
+        description: 'Displays real-time network throughput (upload/download speeds) and interface statistics. Shows data for all active network interfaces.',
+        tip: 'Network speeds are displayed in MB/s by default.'
+      }
+    },
+    {
+      type: 'system-processes' as const,
+      name: 'Processes',
+      description: 'Top running processes',
+      icon: this.faListCheck,
+      iconType: 'fontawesome' as const,
+      configComponent: null,
+      defaults: {
+        title: 'System Processes',
+        layoutW: 3,
+        layoutH: 6,
+        layoutMinW: 3,
+        layoutMinH: 6,
+        layoutMaxW: 3,
+        layoutMaxH: 6
+      },
+      info: {
+        title: 'Processes Widget',
+        description: 'Shows the top 10 running processes sorted by CPU usage. Displays process name, PID, CPU%, and memory usage in real-time.',
+        tip: 'Hover over a process to see the full command.'
+      }
+    },
+    {
+      type: 'plex' as const,
+      name: 'Plex',
+      description: 'Now playing and recent media',
+      icon: this.plexIconUrl,
+      iconType: 'computed' as const,
+      configComponent: PlexWidgetFormComponent,
+      defaults: {
+        title: 'Plex Media Server',
+        layoutW: 3,
+        layoutH: 7,
+        layoutMinW: 3,
+        layoutMinH: 7
+      },
+      info: {
+        title: 'Plex Widget',
+        description: 'Compact widget showing library stats (movies/TV shows), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.',
+        tip: 'Additional active sessions are shown as "+N more sessions" to keep the widget small.'
+      }
+    },
+    {
+      type: 'jellyfin' as const,
+      name: 'Jellyfin',
+      description: 'Now playing and recent media',
+      icon: this.jellyfinIconUrl,
+      iconType: 'computed' as const,
+      configComponent: JellyfinWidgetFormComponent,
+      defaults: {
+        title: 'Jellyfin Media Server',
+        layoutW: 3,
+        layoutH: 7,
+        layoutMinW: 3,
+        layoutMinH: 7
+      },
+      info: {
+        title: 'Jellyfin Widget',
+        description: 'Compact widget showing library stats (movies/TV shows/music), the first active session with artwork, and 10 most recent additions with scrolling. Updates every 10 seconds.',
+        tip: 'Additional active sessions are shown as "+N more sessions" to keep the widget small.'
+      }
+    }
+  ];
+
+  // Filtered widgets based on search
+  filteredWidgets = computed(() => {
+    const query = this.widgetSearchQuery().toLowerCase().trim();
+    if (!query) return this.availableWidgets;
+
+    return this.availableWidgets.filter(widget =>
+      widget.name.toLowerCase().includes(query) ||
+      widget.description.toLowerCase().includes(query)
+    );
+  });
+
+  // Get the configuration component for the currently selected widget
+  selectedWidgetConfig = computed(() => {
+    const widget = this.availableWidgets.find(w => w.type === this.widgetType());
+    return widget?.configComponent || null;
+  });
+
+  // Get the info for the currently selected widget
+  selectedWidgetInfo = computed(() => {
+    const widget = this.availableWidgets.find(w => w.type === this.widgetType());
+    return widget?.info || null;
+  });
+
+  // Get the entire selected widget definition
+  selectedWidget = computed(() => {
+    return this.availableWidgets.find(w => w.type === this.widgetType()) || null;
+  });
+
   // Icon catalog
   categories = signal<IconCategory[]>([]);
   selectedCategory = signal<string | null>(null);
   filteredIcons = signal<IconCatalogEntry[]>([]);
+
+  // Limit icons displayed for performance
+  private readonly MAX_ICONS_DISPLAYED = 100;
+  displayedIcons = computed(() => {
+    const icons = this.filteredIcons();
+    return icons.slice(0, this.MAX_ICONS_DISPLAYED);
+  });
+
+  hasMoreIcons = computed(() => {
+    return this.filteredIcons().length > this.MAX_ICONS_DISPLAYED;
+  });
 
   // Search debouncing
   private searchSubject = new Subject<string>();
@@ -128,6 +398,19 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
       } else {
         // Reset form for create mode
         this.resetForm();
+      }
+    });
+
+    // Clear selected widget if it's filtered out by search
+    effect(() => {
+      const filtered = this.filteredWidgets();
+      const currentWidget = this.widgetType();
+
+      // If current widget is not in filtered list, reset to first widget
+      if (this.isWidgetCard() && !filtered.find(w => w.type === currentWidget)) {
+        if (filtered.length > 0) {
+          this.widgetType.set(filtered[0].type);
+        }
       }
     });
   }
@@ -229,81 +512,49 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
     return this.cardType() === 'widget';
   }
 
-  handleSubmit(): void {
+  async handleSubmit(): Promise<void> {
     // Only require title for regular cards
     if (this.isRegularCard() && !this.title().trim()) {
       alert('Please enter a title');
       return;
     }
 
+    // Validate widget form fields using form component validation
+    if (this.isWidgetCard() && this.widgetFormComponent) {
+      if (!this.widgetFormComponent.validate()) {
+        alert('Please fill in all required widget configuration fields');
+        return;
+      }
+    }
+
     const cardData: any = {};
 
     // Handle widget cards
     if (this.isWidgetCard()) {
-      // Set default title and layout based on widget type
-      switch (this.widgetType()) {
-        case 'note':
-          cardData.title = 'Note';
+      // Get widget definition
+      const widget = this.availableWidgets.find(w => w.type === this.widgetType());
+      if (!widget) {
+        alert('Unknown widget type');
+        return;
+      }
+
+      // Apply default properties from widget definition
+      Object.assign(cardData, widget.defaults);
+
+      // Handle special cases
+      if (this.widgetType() === 'clock') {
+        // Analog clocks need different layout dimensions
+        const clockData = this.widgetFormComponent?.getData();
+        if (clockData?.style === 'analog') {
           cardData.layoutW = 2;
-          cardData.layoutH = 2;
+          cardData.layoutH = 3;
           cardData.layoutMinW = 2;
-          cardData.layoutMinH = 2;
-          break;
-        case 'system-metrics':
-          cardData.title = 'System Metrics';
-          cardData.layoutW = 3;
-          cardData.layoutH = 5;
-          cardData.layoutMinW = 3;
-          cardData.layoutMinH = 5;
-          cardData.layoutMaxW = 3;
-          cardData.layoutMaxH = 5;
-          break;
-        case 'system-processes':
-          cardData.title = 'System Processes';
-          cardData.layoutW = 3;
-          cardData.layoutH = 6;
-          cardData.layoutMinW = 3;
-          cardData.layoutMinH = 6;
-          cardData.layoutMaxW = 3;
-          cardData.layoutMaxH = 6;
-          break;
-        case 'system-network':
-          cardData.title = 'Network Stats';
-          cardData.layoutW = 3;
-          cardData.layoutH = 4;
-          cardData.layoutMinW = 3;
-          cardData.layoutMinH = 4;
-          cardData.layoutMaxW = 3;
-          cardData.layoutMaxH = 4;
-          break;
-        case 'plex':
-          cardData.title = 'Plex Media Server';
-          cardData.layoutW = 3;
-          cardData.layoutH = 7;
-          cardData.layoutMinW = 3;
-          cardData.layoutMinH = 7;
-          break;
-        case 'jellyfin':
-          cardData.title = 'Jellyfin Media Server';
-          cardData.layoutW = 3;
-          cardData.layoutH = 7;
-          cardData.layoutMinW = 3;
-          cardData.layoutMinH = 7;
-          break;
-        case 'clock':
-          cardData.title = 'Clock';
-          if (this.clockStyle() === 'analog') {
-            cardData.layoutW = 2;
-            cardData.layoutH = 3;
-            cardData.layoutMinW = 2;
-            cardData.layoutMinH = 3;
-          } else {
-            cardData.layoutW = 3;
-            cardData.layoutH = 2;
-            cardData.layoutMinW = 3;
-            cardData.layoutMinH = 2;
-          }
-          break;
+          cardData.layoutMinH = 3;
+        }
+      } else if (this.widgetType() === 'rss') {
+        // RSS widget title comes from form data
+        const rssData = this.widgetFormComponent?.getData();
+        cardData.title = rssData?.widgetName || widget.defaults.title;
       }
 
       cardData.iconSource = 'catalog';
@@ -313,24 +564,156 @@ export class AddCardModalComponent implements OnInit, OnDestroy {
       if (this.widgetType() === 'note') {
         widgetConfig.content = '<p>Start writing your notes here...</p>';
       } else if (this.widgetType() === 'plex') {
-        widgetConfig.serverUrl = this.plexServerUrl();
-        widgetConfig.token = this.plexToken();
-        widgetConfig.showNowPlaying = true;
-        widgetConfig.showRecent = true;
-        widgetConfig.recentLimit = 10;
-        widgetConfig.refreshInterval = 10;
+        const plexData = this.widgetFormComponent?.getData();
+        if (!plexData) {
+          alert('Unable to get Plex configuration');
+          return;
+        }
+
+        // Create Plex credential and use its ID
+        try {
+          const credentialResponse = await firstValueFrom(
+            this.http.post<{ credential: any }>('/api/credentials', {
+              name: `Plex Server - ${new Date().toLocaleDateString()}`,
+              serviceType: 'plex',
+              data: {
+                serverUrl: plexData.serverUrl,
+                token: plexData.token
+              },
+              metadata: {
+                createdBy: 'add-card-modal'
+              }
+            })
+          );
+
+          if (!credentialResponse.credential) {
+            alert('Failed to store Plex credentials securely');
+            return;
+          }
+
+          widgetConfig.serverUrl = plexData.serverUrl;
+          widgetConfig.credentialId = credentialResponse.credential.id;
+          widgetConfig.showNowPlaying = true;
+          widgetConfig.showRecent = true;
+          widgetConfig.recentLimit = 10;
+          widgetConfig.refreshInterval = 10;
+        } catch (error) {
+          console.error('Failed to create Plex credential:', error);
+          alert('Failed to store Plex credentials securely. Please try again.');
+          return;
+        }
       } else if (this.widgetType() === 'jellyfin') {
-        widgetConfig.serverUrl = this.jellyfinServerUrl();
-        widgetConfig.apiKey = this.jellyfinApiKey();
-        widgetConfig.showNowPlaying = true;
-        widgetConfig.showRecent = true;
-        widgetConfig.recentLimit = 10;
-        widgetConfig.refreshInterval = 10;
+        const jellyfinData = this.widgetFormComponent?.getData();
+        if (!jellyfinData) {
+          alert('Unable to get Jellyfin configuration');
+          return;
+        }
+
+        // Create Jellyfin credential and use its ID
+        try {
+          const credentialResponse = await firstValueFrom(
+            this.http.post<{ credential: any }>('/api/credentials', {
+              name: `Jellyfin Server - ${new Date().toLocaleDateString()}`,
+              serviceType: 'jellyfin',
+              data: {
+                serverUrl: jellyfinData.serverUrl,
+                apiKey: jellyfinData.apiKey
+              },
+              metadata: {
+                createdBy: 'add-card-modal'
+              }
+            })
+          );
+
+          if (!credentialResponse.credential) {
+            alert('Failed to store Jellyfin credentials securely');
+            return;
+          }
+
+          widgetConfig.serverUrl = jellyfinData.serverUrl;
+          widgetConfig.credentialId = credentialResponse.credential.id;
+          widgetConfig.showNowPlaying = true;
+          widgetConfig.showRecent = true;
+          widgetConfig.recentLimit = 10;
+          widgetConfig.refreshInterval = 10;
+        } catch (error) {
+          console.error('Failed to create Jellyfin credential:', error);
+          alert('Failed to store Jellyfin credentials securely. Please try again.');
+          return;
+        }
       } else if (this.widgetType() === 'clock') {
-        widgetConfig.format = this.clockFormat();
-        widgetConfig.showSeconds = this.clockShowSeconds();
-        widgetConfig.showDate = this.clockShowDate();
-        widgetConfig.style = this.clockStyle();
+        const clockData = this.widgetFormComponent?.getData();
+        if (clockData) {
+          widgetConfig = { ...widgetConfig, ...clockData };
+        }
+      } else if (this.widgetType() === 'rss') {
+        const rssData = this.widgetFormComponent?.getData();
+        if (rssData) {
+          widgetConfig = {
+            ...widgetConfig,
+            ...rssData,
+            refreshInterval: 300 // 5 minutes default
+          };
+        }
+      } else if (this.widgetType() === 'calendar') {
+        const calendarData = this.widgetFormComponent?.getData();
+        if (!calendarData) {
+          alert('Unable to get Calendar configuration');
+          return;
+        }
+
+        // Build calendar source configuration
+        const source: any = {
+          id: `source-${Date.now()}`,
+          type: calendarData.sourceType,
+          name: calendarData.sourceName,
+          color: calendarData.sourceColor,
+          enabled: true
+        };
+
+        if (calendarData.sourceType === 'ics') {
+          source.icsConfig = {
+            feedUrl: calendarData.icsFeedUrl
+          };
+        } else if (calendarData.sourceType === 'caldav') {
+          // Create CalDAV credential and use its ID
+          try {
+            const credentialResponse = await firstValueFrom(
+              this.http.post<{ credential: any }>('/api/credentials', {
+                name: `CalDAV - ${calendarData.sourceName} - ${new Date().toLocaleDateString()}`,
+                serviceType: 'caldav',
+                data: {
+                  serverUrl: calendarData.caldavServerUrl,
+                  username: calendarData.caldavUsername,
+                  password: calendarData.caldavPassword
+                },
+                metadata: {
+                  createdBy: 'add-card-modal',
+                  calendarName: calendarData.sourceName
+                }
+              })
+            );
+
+            if (!credentialResponse.credential) {
+              alert('Failed to store CalDAV credentials securely');
+              return;
+            }
+
+            source.caldavConfig = {
+              credentialId: credentialResponse.credential.id
+            };
+          } catch (error) {
+            console.error('Failed to create CalDAV credential:', error);
+            alert('Failed to store CalDAV credentials securely. Please try again.');
+            return;
+          }
+        }
+
+        widgetConfig.sources = [source];
+        widgetConfig.defaultView = 'dayGridMonth';
+        widgetConfig.refreshInterval = 300; // 5 minutes default
+        widgetConfig.showWeekNumbers = false;
+        widgetConfig.firstDayOfWeek = 0; // Sunday
       }
 
       cardData.widgets = [{

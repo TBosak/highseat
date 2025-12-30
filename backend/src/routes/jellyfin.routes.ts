@@ -3,20 +3,37 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { jellyfinService } from '../services/jellyfin.service';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { credentialsService } from '../services/credentials.service';
 import type { AuthEnv } from '../types';
 
 const jellyfin = new Hono<AuthEnv>();
 
 const jellyfinConfigSchema = z.object({
-  url: z.string().url(),
-  apiKey: z.string().min(1),
+  credentialId: z.string().min(1),
   recentLimit: z.number().optional().default(10)
 });
 
 // Get all Jellyfin data (sessions, recent, stats, info) in one call
 jellyfin.post('/all', authMiddleware, zValidator('json', jellyfinConfigSchema), async (c) => {
   try {
-    const { url, apiKey, recentLimit } = c.req.valid('json');
+    const userId = c.get('user').userId;
+    const { credentialId, recentLimit } = c.req.valid('json');
+
+    // Get credentials
+    const credential = await credentialsService.getCredential(credentialId, userId);
+    if (!credential) {
+      return c.json({ error: 'Credential not found' }, 404);
+    }
+
+    let { serverUrl, apiKey } = credential.data as { serverUrl: string; apiKey: string };
+    if (!serverUrl || !apiKey) {
+      return c.json({ error: 'Invalid credential data' }, 400);
+    }
+
+    // Normalize URL by removing trailing slashes
+    serverUrl = serverUrl.replace(/\/+$/, '');
+
+    const url = serverUrl;
 
     // Fetch all data in parallel
     const [sessions, recent, stats, info] = await Promise.all([
@@ -61,8 +78,24 @@ jellyfin.post('/all', authMiddleware, zValidator('json', jellyfinConfigSchema), 
 // Test connection endpoint
 jellyfin.post('/test', authMiddleware, zValidator('json', jellyfinConfigSchema), async (c) => {
   try {
-    const { url, apiKey } = c.req.valid('json');
-    const info = await jellyfinService.getServerInfo({ url, apiKey });
+    const userId = c.get('user').userId;
+    const { credentialId } = c.req.valid('json');
+
+    // Get credentials
+    const credential = await credentialsService.getCredential(credentialId, userId);
+    if (!credential) {
+      return c.json({ success: false, error: 'Credential not found' }, 404);
+    }
+
+    let { serverUrl, apiKey } = credential.data as { serverUrl: string; apiKey: string };
+    if (!serverUrl || !apiKey) {
+      return c.json({ success: false, error: 'Invalid credential data' }, 400);
+    }
+
+    // Normalize URL by removing trailing slashes
+    serverUrl = serverUrl.replace(/\/+$/, '');
+
+    const info = await jellyfinService.getServerInfo({ url: serverUrl, apiKey });
     return c.json({ success: true, serverName: info.ServerName, version: info.Version });
   } catch (error) {
     return c.json({ success: false, error: (error as Error).message }, 400);
