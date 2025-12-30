@@ -22,7 +22,7 @@
 - 📊 **Multi-Board System** - Organize services across multiple boards with tabs
 - 🎨 **Design Mode** - Customize layouts, colors, borders, and icons visually
 - 🌈 **Base16/Base24 Theming** - Multiple style modes (glassmorphic, neobrutal, minimal, clay)
-- 🖼️ **Custom Backgrounds** - Color, image upload, or Pexels integration
+- 🖼️ **Custom Backgrounds** - Image upload or theme-based color background
 - 🔐 **JWT Authentication** - Secure login with refresh tokens
 - 👥 **RBAC** - Role-based access control (Admin, Designer, Editor, Viewer)
 - 📱 **Responsive Grid** - Drag & drop cards with resize support
