@@ -48,14 +48,19 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 
     const items: RssItem[] = (feed.items || [])
       .slice(0, limit)
-      .map(item => ({
-        title: item.title || 'Untitled',
-        link: item.link || '',
-        description: item.contentSnippet || item.content || item.description,
-        pubDate: item.pubDate || item.isoDate,
-        author: item.creator || item.author,
-        guid: item.guid || item.link
-      }));
+      .map((item, index) => {
+        if (!item.title) {
+          console.warn(`[RSS Worker] Item ${index} has no title. Available fields:`, Object.keys(item));
+        }
+        return {
+          title: item.title || item['title:encoded'] || item.summary || 'Untitled',
+          link: item.link || '',
+          description: item.contentSnippet || item.content || item.description || item['content:encoded'],
+          pubDate: item.pubDate || item.isoDate || item.published,
+          author: item.creator || item.author || item['dc:creator'],
+          guid: item.guid || item.id || item.link
+        };
+      });
 
     const rssFeed: RssFeed = {
       title: feed.title || 'RSS Feed',

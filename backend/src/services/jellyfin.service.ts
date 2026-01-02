@@ -36,7 +36,7 @@ export interface JellyfinRecentItem {
   ImageTags?: {
     Primary?: string;
   };
-  PremiereDate?: string;
+  DateCreated?: string;
 }
 
 export interface JellyfinLibraryStats {
@@ -109,7 +109,7 @@ class JellyfinService {
 
       const items = await this.fetchJellyfin(config, `/Users/${userId}/Items/Latest`, {
         Limit: limit.toString(),
-        Fields: 'PremiereDate,ProductionYear',
+        Fields: 'DateCreated,ProductionYear',
         ImageTypeLimit: '1',
         EnableImageTypes: 'Primary'
       });

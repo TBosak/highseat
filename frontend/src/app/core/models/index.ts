@@ -216,7 +216,7 @@ export interface JellyfinRecentItem {
   Type: string;
   SeriesName?: string;
   ProductionYear?: number;
-  PremiereDate?: string;
+  DateCreated?: string;
   imageUrl?: string | null;
 }
 
